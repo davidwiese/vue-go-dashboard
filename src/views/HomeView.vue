@@ -13,7 +13,7 @@
 						></l-tile-layer>
 						<l-marker
 							v-for="vehicle in vehicles"
-							:key="vehicle.id"
+							:key="`${vehicle.id}-${vehicle.latitude}-${vehicle.longitude}`"
 							:lat-lng="[vehicle.latitude, vehicle.longitude]"
 						>
 							<l-popup>
@@ -118,12 +118,12 @@
 							required
 						></v-select>
 						<v-text-field
-							v-model.number="newVehicle.latitude"
+							v-model.number="editedVehicle.latitude"
 							label="Latitude"
 							required
 						></v-text-field>
 						<v-text-field
-							v-model.number="newVehicle.longitude"
+							v-model.number="editedVehicle.longitude"
 							label="Longitude"
 							required
 						></v-text-field>
