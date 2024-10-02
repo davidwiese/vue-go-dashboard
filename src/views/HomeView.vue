@@ -128,7 +128,7 @@ const addVehicle = async () => {
 	}
 };
 
-// Edit vehicle
+// Edit vehicle -- opens dialogue to edit vehicle
 const editVehicle = (vehicle) => {
 	editedVehicle.value = { ...vehicle };
 	editDialog.value = true;
@@ -136,20 +136,36 @@ const editVehicle = (vehicle) => {
 
 // Update vehicle
 const updateVehicle = async () => {
-	// Placeholder for API call
-	const index = vehicles.value.findIndex(
-		(v) => v.id === editedVehicle.value.id
-	);
-	if (index !== -1) {
-		vehicles.value[index] = { ...editedVehicle.value };
+	try {
+		const response = await axios.put(
+			`http://localhost:8080/vehicles/${editedVehicle.value.id}`,
+			{
+				name: editedVehicle.value.name,
+				status: editedVehicle.value.status,
+				latitude: editedVehicle.value.latitude || 34.052235,
+				longitude: editedVehicle.value.longitude || -118.243683,
+			}
+		);
+		const index = vehicles.value.findIndex(
+			(v) => v.id === editedVehicle.value.id
+		);
+		if (index !== -1) {
+			vehicles.value[index] = response.data;
+		}
+		editDialog.value = false;
+	} catch (error) {
+		console.error("Error updating vehicle:", error);
 	}
-	editDialog.value = false;
 };
 
 // Delete vehicle
 const deleteVehicle = async (id) => {
-	// Placeholder for API call
-	vehicles.value = vehicles.value.filter((v) => v.id !== id);
+	try {
+		await axios.delete(`http://localhost:8080/vehicles/${id}`);
+		vehicles.value = vehicles.value.filter((v) => v.id !== id);
+	} catch (error) {
+		console.error("Error deleting vehicle:", error);
+	}
 };
 
 onMounted(() => {
