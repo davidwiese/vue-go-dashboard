@@ -94,6 +94,7 @@
 
 <script setup>
 import { ref, onMounted } from "vue";
+import axios from "axios";
 
 // Vehicle data
 const vehicles = ref([]);
@@ -101,38 +102,30 @@ const newVehicle = ref({ name: "", status: "Active" });
 const editedVehicle = ref({});
 const editDialog = ref(false);
 
-// Fetch vehicles (to be implemented)
+// Fetch vehicles
 const fetchVehicles = async () => {
-	// Placeholder for API call
-	vehicles.value = [
-		{
-			id: 1,
-			name: "Truck 1",
-			status: "Active",
-			latitude: 34.052235,
-			longitude: -118.243683,
-		},
-		{
-			id: 2,
-			name: "Van 2",
-			status: "Inactive",
-			latitude: 34.052235,
-			longitude: -118.243683,
-		},
-	];
+	try {
+		const response = await axios.get("http://localhost:8080/vehicles");
+		vehicles.value = response.data;
+	} catch (error) {
+		console.error("Error fetching vehicles:", error);
+	}
 };
 
 // Add new vehicle
 const addVehicle = async () => {
-	// Placeholder for API call
-	const newId = vehicles.value.length + 1;
-	vehicles.value.push({
-		id: newId,
-		...newVehicle.value,
-		latitude: 34.052235, // placeholder
-		longitude: -118.243683, // placeholder
-	});
-	newVehicle.value = { name: "", status: "Active" };
+	try {
+		const response = await axios.post("http://localhost:8080/vehicles", {
+			name: newVehicle.value.name,
+			status: newVehicle.value.status,
+			latitude: 34.052235, // placeholder
+			longitude: -118.243683, // placeholder
+		});
+		vehicles.value.push(response.data);
+		newVehicle.value = { name: "", status: "Active" };
+	} catch (error) {
+		console.error("Error adding vehicle:", error);
+	}
 };
 
 // Edit vehicle
