@@ -4,7 +4,28 @@
 		<v-row>
 			<v-col cols="8">
 				<!-- Map -->
-				<div class="bg-gray-200 h-96">Map goes here</div>
+				<div style="height: 500px; width: 100%">
+					<l-map ref="map" v-model:zoom="zoom" :center="center">
+						<l-tile-layer
+							url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+							layer-type="base"
+							name="OpenStreetMap"
+						></l-tile-layer>
+						<l-marker
+							v-for="vehicle in vehicles"
+							:key="vehicle.id"
+							:lat-lng="[vehicle.latitude, vehicle.longitude]"
+						>
+							<l-popup>
+								<div>
+									<strong>{{ vehicle.name }}</strong
+									><br />
+									Status: {{ vehicle.status }}
+								</div>
+							</l-popup>
+						</l-marker>
+					</l-map>
+				</div>
 			</v-col>
 			<v-col cols="4">
 				<v-card class="mb-4">
@@ -96,9 +117,12 @@
 <script setup>
 import { ref, onMounted } from "vue";
 import axios from "axios";
+import "leaflet/dist/leaflet.css";
+import { LMap, LTileLayer, LMarker, LPopup } from "@vue-leaflet/vue-leaflet";
 
-// Define reactive variable for map center
-const mapCenter = ref([34.052235, -118.243683]);
+// Map data
+const zoom = ref(13);
+const center = ref([34.052235, -118.243683]);
 
 // Vehicle data
 const vehicles = ref([]);
