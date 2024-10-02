@@ -124,7 +124,7 @@ const newVehicle = ref({
 const editedVehicle = ref({});
 const editDialog = ref(false);
 
-// Fetch vehicles
+// Fetch vehicles from backend
 const fetchVehicles = async () => {
 	try {
 		const response = await axios.get("http://localhost:8080/vehicles");
