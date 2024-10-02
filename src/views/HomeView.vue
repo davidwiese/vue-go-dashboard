@@ -29,6 +29,7 @@
 			</v-col>
 			<v-col cols="4">
 				<v-card class="mb-4">
+					<!-- Add Vehicle -->
 					<v-card-title>Add New Vehicle</v-card-title>
 					<v-card-text>
 						<v-form @submit.prevent="addVehicle">
@@ -44,11 +45,22 @@
 								label="Status"
 								required
 							></v-select>
+							<v-text-field
+								v-model.number="newVehicle.latitude"
+								label="Latitude"
+								required
+							></v-text-field>
+							<v-text-field
+								v-model.number="newVehicle.longitude"
+								label="Longitude"
+								required
+							></v-text-field>
 							<v-btn type="submit" color="primary">Add Vehicle</v-btn>
 						</v-form>
 					</v-card-text>
 				</v-card>
 
+				<!-- Vehicles section -->
 				<v-card>
 					<v-card-title>Vehicles</v-card-title>
 					<v-card-text>
@@ -105,6 +117,16 @@
 							label="Status"
 							required
 						></v-select>
+						<v-text-field
+							v-model.number="newVehicle.latitude"
+							label="Latitude"
+							required
+						></v-text-field>
+						<v-text-field
+							v-model.number="newVehicle.longitude"
+							label="Longitude"
+							required
+						></v-text-field>
 						<v-btn type="submit" color="primary">Update Vehicle</v-btn>
 						<v-btn @click="editDialog = false" color="secondary">Cancel</v-btn>
 					</v-form>
@@ -129,6 +151,8 @@ const vehicles = ref([]);
 const newVehicle = ref({
 	name: "",
 	status: "Active",
+	latitude: 34.052235, // Default latitude
+	longitude: -118.243683, // Default longitude
 });
 const editedVehicle = ref({});
 const editDialog = ref(false);
@@ -149,11 +173,16 @@ const addVehicle = async () => {
 		const response = await axios.post("http://localhost:8080/vehicles", {
 			name: newVehicle.value.name,
 			status: newVehicle.value.status,
-			latitude: 34.052235, // placeholder
-			longitude: -118.243683, // placeholder
+			latitude: newVehicle.value.latitude,
+			longitude: newVehicle.value.longitude,
 		});
 		vehicles.value.push(response.data);
-		newVehicle.value = { name: "", status: "Active" };
+		newVehicle.value = {
+			name: "",
+			status: "Active",
+			latitude: 34.052235,
+			longitude: -118.243683,
+		};
 	} catch (error) {
 		console.error("Error adding vehicle:", error);
 	}
@@ -173,8 +202,8 @@ const updateVehicle = async () => {
 			{
 				name: editedVehicle.value.name,
 				status: editedVehicle.value.status,
-				latitude: editedVehicle.value.latitude || 34.052235,
-				longitude: editedVehicle.value.longitude || -118.243683,
+				latitude: editedVehicle.value.latitude,
+				longitude: editedVehicle.value.longitude,
 			}
 		);
 		const index = vehicles.value.findIndex(
