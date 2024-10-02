@@ -3,8 +3,8 @@
 		<h1 class="text-2xl mb-4">Vehicle Tracker</h1>
 		<v-row>
 			<v-col cols="8">
-				<!-- Map will go here -->
-				<div class="bg-gray-200 h-96">Map Placeholder</div>
+				<!-- Map -->
+				<div class="bg-gray-200 h-96">Map goes here</div>
 			</v-col>
 			<v-col cols="4">
 				<v-card class="mb-4">
@@ -96,6 +96,9 @@
 <script setup>
 import { ref, onMounted } from "vue";
 import axios from "axios";
+
+// Define reactive variable for map center
+const mapCenter = ref([34.052235, -118.243683]);
 
 // Vehicle data
 const vehicles = ref([]);
