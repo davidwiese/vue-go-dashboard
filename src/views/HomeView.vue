@@ -16,6 +16,16 @@
 								label="Vehicle Name"
 								required
 							></v-text-field>
+							<v-text-field
+								v-model="newVehicle.latitude"
+								label="Latitude"
+								required
+							></v-text-field>
+							<v-text-field
+								v-model="newVehicle.longitude"
+								label="Longitude"
+								required
+							></v-text-field>
 							<v-select
 								v-model="newVehicle.status"
 								:items="['Active', 'Inactive']"
@@ -77,6 +87,16 @@
 							label="Vehicle Name"
 							required
 						></v-text-field>
+						<v-text-field
+							v-model="editedVehicle.latitude"
+							label="Latitude"
+							required
+						></v-text-field>
+						<v-text-field
+							v-model="editedVehicle.longitude"
+							label="Longitude"
+							required
+						></v-text-field>
 						<v-select
 							v-model="editedVehicle.status"
 							:items="['Active', 'Inactive']"
@@ -98,7 +118,12 @@ import axios from "axios";
 
 // Vehicle data
 const vehicles = ref([]);
-const newVehicle = ref({ name: "", status: "Active" });
+const newVehicle = ref({
+	name: "",
+	status: "Active",
+	latitude: 34.052235, // Default value
+	longitude: -118.243683, // Default value
+});
 const editedVehicle = ref({});
 const editDialog = ref(false);
 
