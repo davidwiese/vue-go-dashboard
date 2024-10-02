@@ -137,7 +137,7 @@
 </template>
 
 <script setup>
-import { ref, onMounted } from "vue";
+import { ref, onMounted, onBeforeUnmount } from "vue";
 import axios from "axios";
 import "leaflet/dist/leaflet.css";
 import { LMap, LTileLayer, LMarker, LPopup } from "@vue-leaflet/vue-leaflet";
@@ -156,6 +156,55 @@ const newVehicle = ref({
 });
 const editedVehicle = ref({});
 const editDialog = ref(false);
+
+// WebSocket setup
+let socket;
+
+const initWebSocket = () => {
+	socket = new WebSocket("ws://localhost:8080/ws");
+
+	socket.onopen = () => {
+		console.log("WebSocket connection established");
+	};
+
+	socket.onmessage = (event) => {
+		const vehicleUpdate = JSON.parse(event.data);
+
+		if (vehicleUpdate.action === "delete") {
+			// Handle vehicle deletion
+			vehicles.value = vehicles.value.filter((v) => v.id !== vehicleUpdate.id);
+		} else {
+			// Handle vehicle addition or update
+			const index = vehicles.value.findIndex((v) => v.id === vehicleUpdate.id);
+			if (index !== -1) {
+				// Update existing vehicle
+				vehicles.value[index] = vehicleUpdate;
+			} else {
+				// Add new vehicle
+				vehicles.value.push(vehicleUpdate);
+			}
+		}
+	};
+
+	socket.onerror = (error) => {
+		console.error("WebSocket error:", error);
+	};
+
+	socket.onclose = () => {
+		console.log("WebSocket connection closed");
+	};
+};
+
+onMounted(() => {
+	fetchVehicles();
+	initWebSocket();
+});
+
+onBeforeUnmount(() => {
+	if (socket) {
+		socket.close();
+	}
+});
 
 // Fetch vehicles from backend
 const fetchVehicles = async () => {
