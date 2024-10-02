@@ -3,7 +3,7 @@
 <template>
 	<v-app>
 		<v-app-bar app>
-			<v-app-bar-title>Fleet Tracking Dashboard</v-app-bar-title>
+			<v-app-bar-title>Vuetify + Go Fleet Tracking Dashboard</v-app-bar-title>
 		</v-app-bar>
 
 		<v-main>
