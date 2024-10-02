@@ -16,22 +16,21 @@
 								label="Vehicle Name"
 								required
 							></v-text-field>
-							<v-text-field
-								v-model="newVehicle.latitude"
-								label="Latitude"
-								required
-							></v-text-field>
-							<v-text-field
-								v-model="newVehicle.longitude"
-								label="Longitude"
-								required
-							></v-text-field>
+
 							<v-select
 								v-model="newVehicle.status"
 								:items="['Active', 'Inactive']"
 								label="Status"
 								required
 							></v-select>
+							<v-text-field
+								v-model="newVehicle.latitude"
+								label="Latitude"
+							></v-text-field>
+							<v-text-field
+								v-model="newVehicle.longitude"
+								label="Longitude"
+							></v-text-field>
 							<v-btn type="submit" color="primary">Add Vehicle</v-btn>
 						</v-form>
 					</v-card-text>
@@ -87,22 +86,20 @@
 							label="Vehicle Name"
 							required
 						></v-text-field>
-						<v-text-field
-							v-model="editedVehicle.latitude"
-							label="Latitude"
-							required
-						></v-text-field>
-						<v-text-field
-							v-model="editedVehicle.longitude"
-							label="Longitude"
-							required
-						></v-text-field>
 						<v-select
 							v-model="editedVehicle.status"
 							:items="['Active', 'Inactive']"
 							label="Status"
 							required
 						></v-select>
+						<v-text-field
+							v-model="editedVehicle.latitude"
+							label="Latitude"
+						></v-text-field>
+						<v-text-field
+							v-model="editedVehicle.longitude"
+							label="Longitude"
+						></v-text-field>
 						<v-btn type="submit" color="primary">Update Vehicle</v-btn>
 						<v-btn @click="editDialog = false" color="secondary">Cancel</v-btn>
 					</v-form>
