@@ -23,14 +23,6 @@
 								label="Status"
 								required
 							></v-select>
-							<v-text-field
-								v-model="newVehicle.latitude"
-								label="Latitude"
-							></v-text-field>
-							<v-text-field
-								v-model="newVehicle.longitude"
-								label="Longitude"
-							></v-text-field>
 							<v-btn type="submit" color="primary">Add Vehicle</v-btn>
 						</v-form>
 					</v-card-text>
@@ -92,14 +84,6 @@
 							label="Status"
 							required
 						></v-select>
-						<v-text-field
-							v-model="editedVehicle.latitude"
-							label="Latitude"
-						></v-text-field>
-						<v-text-field
-							v-model="editedVehicle.longitude"
-							label="Longitude"
-						></v-text-field>
 						<v-btn type="submit" color="primary">Update Vehicle</v-btn>
 						<v-btn @click="editDialog = false" color="secondary">Cancel</v-btn>
 					</v-form>
@@ -118,8 +102,6 @@ const vehicles = ref([]);
 const newVehicle = ref({
 	name: "",
 	status: "Active",
-	latitude: 34.052235, // Default value
-	longitude: -118.243683, // Default value
 });
 const editedVehicle = ref({});
 const editDialog = ref(false);
