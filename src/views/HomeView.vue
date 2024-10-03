@@ -225,7 +225,6 @@ const addVehicle = async () => {
 			latitude: newVehicle.value.latitude,
 			longitude: newVehicle.value.longitude,
 		});
-		vehicles.value.push(response.data);
 		newVehicle.value = {
 			name: "",
 			status: "Active",
