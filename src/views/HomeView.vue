@@ -11,6 +11,8 @@
 							layer-type="base"
 							name="OpenStreetMap"
 						></l-tile-layer>
+						<!-- v-for is equivalent to .map() in React -->
+						<!-- :key is used for list rendering optimization in Vue -->
 						<l-marker
 							v-for="vehicle in vehicles"
 							:key="`${vehicle.id}-${vehicle.latitude}-${vehicle.longitude}`"
@@ -33,6 +35,7 @@
 					<v-card-title>Add New Vehicle</v-card-title>
 					<v-card-text>
 						<v-form @submit.prevent="addVehicle">
+							<!-- v-model is used for two-way data binding (combines value and onChange in React) -->
 							<v-text-field
 								v-model="newVehicle.name"
 								label="Vehicle Name"
@@ -82,6 +85,7 @@
 								>
 
 								<template v-slot:append>
+									<!-- @click is equivalent to onClick in React -->
 									<v-btn
 										icon="mdi-pencil"
 										size="small"
@@ -137,6 +141,9 @@
 </template>
 
 <script setup>
+// ref creates reactive variables = similar useState in React
+// onMounted is equivalent to useEffect with empty dependency array in React
+// onBeforeUnmount is similar to useEffect cleanup in React
 import { ref, onMounted, onBeforeUnmount } from "vue";
 import axios from "axios";
 import "leaflet/dist/leaflet.css";
