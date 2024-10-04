@@ -171,9 +171,8 @@ const editDialog = ref(false);
 let socket;
 
 const initWebSocket = () => {
-	socket = new WebSocket(
-		`ws://gobackend-env.eba-cpaytf92.us-west-1.elasticbeanstalk.com/ws`
-	);
+	const wsProtocol = window.location.protocol === "https:" ? "wss" : "ws";
+	socket = new WebSocket(`${wsProtocol}://${window.location.hostname}/ws`);
 
 	socket.onopen = () => {
 		console.log("WebSocket connection established");
