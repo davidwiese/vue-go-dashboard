@@ -121,31 +121,7 @@ While the **Vue Go Fleet Tracking Dashboard** is fully functional, several enhan
 - **Data Exporting:**
   - Enable exporting of data in various formats (CSV, PDF) for offline analysis and reporting purposes.
 
-### **6. Performance Optimization**
-
-- **Lazy Loading:** 
-  - Implement lazy loading for map tiles and other heavy components to improve initial load times and overall performance.
-  
-- **Caching Strategies:**
-  - Utilize browser and CDN caching to reduce server load and enhance user experience through faster data retrieval.
-
-### **7. Scalability Enhancements**
-
-- **Optimized WebSocket Management:**
-  - Improve the handling of WebSocket connections to support a larger number of concurrent users without performance degradation.
-  
-- **Load Balancing:**
-  - Implement load balancing strategies to distribute traffic evenly across multiple backend instances, ensuring high availability and reliability.
-
-### **8. Testing and Quality Assurance**
-
-- **Automated Testing:**
-  - Develop unit and integration tests for both frontend and backend components to ensure code reliability and facilitate future development.
-  
-- **Continuous Integration/Continuous Deployment (CI/CD):**
-  - Set up CI/CD pipelines to automate testing, building, and deployment processes, streamlining development workflows.
-
-### **9. Documentation and Onboarding**
+### **6. Documentation and Onboarding**
 
 - **Comprehensive Documentation:**
   - Create detailed documentation for developers and users, outlining setup instructions, API endpoints, feature usage, and troubleshooting guides.
