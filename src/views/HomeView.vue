@@ -173,7 +173,7 @@ let socket;
 const initWebSocket = () => {
 	const wsProtocol = window.location.protocol === "https:" ? "wss:" : "ws:";
 	const backendUrl =
-		"http://gobackend-env.eba-cpaytf92.us-west-1.elasticbeanstalk.com/";
+		"http://gobackend-env.eba-cpaytf92.us-west-1.elasticbeanstalk.com";
 	socket = new WebSocket(`${wsProtocol}//${backendUrl}/ws`);
 
 	socket.onopen = () => {
