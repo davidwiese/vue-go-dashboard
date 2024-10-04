@@ -171,8 +171,10 @@ const editDialog = ref(false);
 let socket;
 
 const initWebSocket = () => {
-	const wsProtocol = window.location.protocol === "https:" ? "wss" : "ws";
-	socket = new WebSocket(`${wsProtocol}://${window.location.hostname}/ws`);
+	const wsProtocol = window.location.protocol === "https:" ? "wss:" : "ws:";
+	const backendUrl =
+		"http://gobackend-env.eba-cpaytf92.us-west-1.elasticbeanstalk.com/";
+	socket = new WebSocket(`${wsProtocol}//${backendUrl}/ws`);
 
 	socket.onopen = () => {
 		console.log("WebSocket connection established");
@@ -286,8 +288,4 @@ const deleteVehicle = async (id) => {
 		console.error("Error deleting vehicle:", error);
 	}
 };
-
-onMounted(() => {
-	fetchVehicles();
-});
 </script>
