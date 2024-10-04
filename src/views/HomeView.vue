@@ -149,6 +149,9 @@ import axios from "axios";
 import "leaflet/dist/leaflet.css";
 import { LMap, LTileLayer, LMarker, LPopup } from "@vue-leaflet/vue-leaflet";
 
+const API_BASE_URL =
+	"http://gobackend-env.eba-cpaytf92.us-west-1.elasticbeanstalk.com";
+
 // Map data
 const zoom = ref(13);
 const center = ref([34.052235, -118.243683]);
@@ -168,7 +171,9 @@ const editDialog = ref(false);
 let socket;
 
 const initWebSocket = () => {
-	socket = new WebSocket("ws://localhost:8080/ws");
+	socket = new WebSocket(
+		`ws://gobackend-env.eba-cpaytf92.us-west-1.elasticbeanstalk.com/ws`
+	);
 
 	socket.onopen = () => {
 		console.log("WebSocket connection established");
@@ -216,7 +221,7 @@ onBeforeUnmount(() => {
 // Fetch vehicles from backend
 const fetchVehicles = async () => {
 	try {
-		const response = await axios.get("http://localhost:8080/vehicles");
+		const response = await axios.get(`${API_BASE_URL}/vehicles`);
 		vehicles.value = response.data;
 	} catch (error) {
 		console.error("Error fetching vehicles:", error);
@@ -226,7 +231,7 @@ const fetchVehicles = async () => {
 // Add new vehicle
 const addVehicle = async () => {
 	try {
-		const response = await axios.post("http://localhost:8080/vehicles", {
+		const response = await axios.post(`${API_BASE_URL}/vehicles`, {
 			name: newVehicle.value.name,
 			status: newVehicle.value.status,
 			latitude: newVehicle.value.latitude,
@@ -253,7 +258,7 @@ const editVehicle = (vehicle) => {
 const updateVehicle = async () => {
 	try {
 		const response = await axios.put(
-			`http://localhost:8080/vehicles/${editedVehicle.value.id}`,
+			`${API_BASE_URL}/vehicles/${editedVehicle.value.id}`,
 			{
 				name: editedVehicle.value.name,
 				status: editedVehicle.value.status,
@@ -276,7 +281,7 @@ const updateVehicle = async () => {
 // Delete vehicle
 const deleteVehicle = async (id) => {
 	try {
-		await axios.delete(`http://localhost:8080/vehicles/${id}`);
+		await axios.delete(`${API_BASE_URL}/vehicles/${id}`);
 		vehicles.value = vehicles.value.filter((v) => v.id !== id);
 	} catch (error) {
 		console.error("Error deleting vehicle:", error);
