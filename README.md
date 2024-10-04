@@ -72,16 +72,3 @@ Embarking on this project provided a hands-on opportunity to delve into technolo
   - Designed and managed a relational database schema to store and retrieve vehicle data efficiently.
 
 This project not only solidified my understanding of these technologies but also honed my ability to learn and apply new tools swiftly—a crucial skill for thriving in dynamic development environments.
-
-## **Installation**
-To run the **Vue Go Fleet Tracking Dashboard** locally, follow these steps:
-
-### **Prerequisites**
-- **Node.js** and **npm** installed. Download from [Node.js Official Website](https://nodejs.org/).
-- **Go** installed. Download from [Go Official Website](https://golang.org/dl/).
-- **MySQL** database set up (locally or via AWS RDS).
-
-### **Frontend Setup**
-1. **Clone the Repository:**
-   ```bash
-   git clone https://github.com/davidwiese/vue-go-dashboard.git
