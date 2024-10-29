@@ -22,6 +22,16 @@ const newVehicle = ref({
 	longitude: -118.243683,
 });
 
+// Edit dialog state
+const editDialog = ref(false);
+const editedVehicle = ref({
+	id: null,
+	name: "",
+	status: "",
+	latitude: 0,
+	longitude: 0,
+});
+
 // Basic fetch vehicles function
 const fetchVehicles = async () => {
 	console.log("Fetching vehicles from:", `${API_BASE_URL}/vehicles`);
@@ -54,6 +64,37 @@ const addVehicle = async () => {
 		await fetchVehicles();
 	} catch (error) {
 		console.error("Error adding vehicle:", error);
+	}
+};
+
+// Edit vehicle -- opens dialog to edit vehicle
+const editVehicle = (vehicle) => {
+	editedVehicle.value = { ...vehicle };
+	editDialog.value = true;
+};
+
+// Update vehicle
+const updateVehicle = async () => {
+	console.log("Updating vehicle:", editedVehicle.value);
+	try {
+		const response = await axios.put(
+			`${API_BASE_URL}/vehicles/${editedVehicle.value.id}`,
+			editedVehicle.value
+		);
+		console.log("Vehicle updated:", response.data);
+
+		// Update local list
+		const index = vehicles.value.findIndex(
+			(v) => v.id === editedVehicle.value.id
+		);
+		if (index !== -1) {
+			vehicles.value[index] = response.data;
+		}
+
+		// Close dialog
+		editDialog.value = false;
+	} catch (error) {
+		console.error("Error updating vehicle:", error);
 	}
 };
 
@@ -175,6 +216,12 @@ onMounted(() => {
 								>
 								<template v-slot:append>
 									<v-btn
+										icon="mdi-pencil"
+										size="small"
+										class="mr-2"
+										@click="editVehicle(vehicle)"
+									></v-btn>
+									<v-btn
 										icon="mdi-delete"
 										size="small"
 										color="error"
@@ -182,6 +229,47 @@ onMounted(() => {
 									></v-btn>
 								</template>
 							</v-list-item>
+							<v-dialog v-model="editDialog" max-width="500px">
+								<v-card>
+									<v-card-title>Edit Vehicle</v-card-title>
+									<v-card-text>
+										<v-form @submit.prevent="updateVehicle">
+											<v-text-field
+												v-model="editedVehicle.name"
+												label="Vehicle Name"
+												required
+											></v-text-field>
+
+											<v-select
+												v-model="editedVehicle.status"
+												:items="['Active', 'Inactive']"
+												label="Status"
+												required
+											></v-select>
+
+											<v-text-field
+												v-model.number="editedVehicle.latitude"
+												label="Latitude"
+												required
+											></v-text-field>
+
+											<v-text-field
+												v-model.number="editedVehicle.longitude"
+												label="Longitude"
+												required
+											></v-text-field>
+
+											<v-card-actions>
+												<v-spacer></v-spacer>
+												<v-btn color="primary" type="submit">Update</v-btn>
+												<v-btn color="error" @click="editDialog = false"
+													>Cancel</v-btn
+												>
+											</v-card-actions>
+										</v-form>
+									</v-card-text>
+								</v-card>
+							</v-dialog>
 						</v-list>
 					</v-card-text>
 				</v-card>
