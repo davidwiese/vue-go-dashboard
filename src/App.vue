@@ -1,4 +1,10 @@
-<script setup></script>
+<script setup>
+import { onMounted } from "vue";
+
+onMounted(() => {
+	console.log("App component mounted");
+});
+</script>
 
 <template>
 	<v-app>
@@ -8,9 +14,20 @@
 
 		<v-main>
 			<v-container>
-				<router-view
-					><!-- Components rendered here similar to React Router <Switch> and <Route> --></router-view
+				<div
+					class="debug"
+					style="background: #f0f0f0; padding: 10px; margin-bottom: 10px"
 				>
+					App Layout Loaded
+				</div>
+				<router-view v-slot="{ Component }">
+					<template v-if="Component">
+						<component :is="Component" />
+					</template>
+					<template v-else>
+						<div>No component loaded</div>
+					</template>
+				</router-view>
 			</v-container>
 		</v-main>
 	</v-app>
