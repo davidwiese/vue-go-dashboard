@@ -57,6 +57,19 @@ const addVehicle = async () => {
 	}
 };
 
+// Delete vehicle
+const deleteVehicle = async (id) => {
+	console.log("Deleting vehicle:", id);
+	try {
+		await axios.delete(`${API_BASE_URL}/vehicles/${id}`);
+		console.log("Vehicle deleted:", id);
+		// Remove from local list
+		vehicles.value = vehicles.value.filter((v) => v.id !== id);
+	} catch (error) {
+		console.error("Error deleting vehicle:", error);
+	}
+};
+
 onMounted(() => {
 	console.log("HomeView mounted");
 	fetchVehicles();
@@ -160,6 +173,14 @@ onMounted(() => {
 								<v-list-item-subtitle
 									>Status: {{ vehicle.status }}</v-list-item-subtitle
 								>
+								<template v-slot:append>
+									<v-btn
+										icon="mdi-delete"
+										size="small"
+										color="error"
+										@click="deleteVehicle(vehicle.id)"
+									></v-btn>
+								</template>
 							</v-list-item>
 						</v-list>
 					</v-card-text>
