@@ -1,5 +1,5 @@
 <script setup>
-import { ref, onMounted } from "vue";
+import { ref, onMounted, onBeforeUnmount } from "vue";
 import axios from "axios";
 import "leaflet/dist/leaflet.css";
 import { LMap, LTileLayer, LMarker, LPopup } from "@vue-leaflet/vue-leaflet";
@@ -8,6 +8,10 @@ console.log("HomeView script executing");
 
 // Constants
 const API_BASE_URL = "http://localhost:5000";
+const WS_URL = "ws://localhost:5000/ws";
+
+// WebSocket connection
+let socket = null;
 
 // Map data
 const zoom = ref(13);
@@ -32,7 +36,45 @@ const editedVehicle = ref({
 	longitude: 0,
 });
 
-// Basic fetch vehicles function
+// Functions
+// WebSocket setup
+const initWebSocket = () => {
+	console.log("Initializing WebSocket connection");
+	socket = new WebSocket(WS_URL);
+
+	socket.onopen = () => {
+		console.log("WebSocket connection established");
+	};
+
+	socket.onmessage = (event) => {
+		console.log("WebSocket message received:", event.data);
+		const vehicleUpdate = JSON.parse(event.data);
+
+		if (vehicleUpdate.action === "delete") {
+			console.log("Handling delete action for vehicle:", vehicleUpdate.id);
+			vehicles.value = vehicles.value.filter((v) => v.id !== vehicleUpdate.id);
+		} else {
+			const index = vehicles.value.findIndex((v) => v.id === vehicleUpdate.id);
+			if (index !== -1) {
+				console.log("Updating existing vehicle:", vehicleUpdate);
+				vehicles.value[index] = vehicleUpdate;
+			} else {
+				console.log("Adding new vehicle:", vehicleUpdate);
+				vehicles.value.push(vehicleUpdate);
+			}
+		}
+	};
+
+	socket.onerror = (error) => {
+		console.error("WebSocket error:", error);
+	};
+
+	socket.onclose = () => {
+		console.log("WebSocket connection closed");
+	};
+};
+
+// Fetch vehicles from backend
 const fetchVehicles = async () => {
 	console.log("Fetching vehicles from:", `${API_BASE_URL}/vehicles`);
 	try {
@@ -44,76 +86,64 @@ const fetchVehicles = async () => {
 	}
 };
 
-// Add vehicle
+// Add new vehicle
 const addVehicle = async () => {
 	console.log("Adding vehicle:", newVehicle.value);
 	try {
-		const response = await axios.post(
-			`${API_BASE_URL}/vehicles`,
-			newVehicle.value
-		);
-		console.log("Vehicle added:", response.data);
-		// Reset form
+		await axios.post(`${API_BASE_URL}/vehicles`, newVehicle.value);
 		newVehicle.value = {
 			name: "",
 			status: "Active",
-			latitude: 34.052235,
-			longitude: -118.243683,
+			latitude: 37.7749,
+			longitude: -122.4194,
 		};
-		// Refresh vehicle list
-		await fetchVehicles();
 	} catch (error) {
 		console.error("Error adding vehicle:", error);
 	}
 };
 
-// Edit vehicle -- opens dialog to edit vehicle
+// Edit vehicle dialogue
 const editVehicle = (vehicle) => {
 	editedVehicle.value = { ...vehicle };
 	editDialog.value = true;
 };
 
-// Update vehicle
+// Edit vehicle
 const updateVehicle = async () => {
 	console.log("Updating vehicle:", editedVehicle.value);
 	try {
-		const response = await axios.put(
+		await axios.put(
 			`${API_BASE_URL}/vehicles/${editedVehicle.value.id}`,
 			editedVehicle.value
 		);
-		console.log("Vehicle updated:", response.data);
-
-		// Update local list
-		const index = vehicles.value.findIndex(
-			(v) => v.id === editedVehicle.value.id
-		);
-		if (index !== -1) {
-			vehicles.value[index] = response.data;
-		}
-
-		// Close dialog
 		editDialog.value = false;
 	} catch (error) {
 		console.error("Error updating vehicle:", error);
 	}
 };
 
-// Delete vehicle
+// Delete vehicle from backend
 const deleteVehicle = async (id) => {
 	console.log("Deleting vehicle:", id);
 	try {
 		await axios.delete(`${API_BASE_URL}/vehicles/${id}`);
-		console.log("Vehicle deleted:", id);
-		// Remove from local list
-		vehicles.value = vehicles.value.filter((v) => v.id !== id);
 	} catch (error) {
 		console.error("Error deleting vehicle:", error);
 	}
 };
 
+// Lifecycle hooks
 onMounted(() => {
 	console.log("HomeView mounted");
 	fetchVehicles();
+	initWebSocket();
+});
+
+onBeforeUnmount(() => {
+	console.log("Cleaning up WebSocket connection");
+	if (socket) {
+		socket.close();
+	}
 });
 </script>
 
