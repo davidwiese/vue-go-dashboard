@@ -1,0 +1,117 @@
+<script setup>
+const props = defineProps({
+	vehicles: {
+		type: Array,
+		required: true,
+	},
+});
+
+const emit = defineEmits(["edit", "delete"]);
+
+const getStatusColor = (vehicle) => {
+	if (!vehicle.online) return "error";
+	switch (vehicle.active_state.toLowerCase()) {
+		case "active":
+		case "driving":
+			return "success";
+		case "idle":
+			return "warning";
+		default:
+			return "grey";
+	}
+};
+
+const formatLastUpdate = (timestamp) => {
+	if (!timestamp) return "N/A";
+	return new Date(timestamp).toLocaleString();
+};
+</script>
+
+<template>
+	<v-card class="vehicle-list">
+		<v-card-title class="d-flex align-center">
+			<v-icon class="mr-2">mdi-car-multiple</v-icon>
+			Vehicles
+			<v-spacer></v-spacer>
+			<v-chip class="ml-2">{{ vehicles.length }} Total</v-chip>
+		</v-card-title>
+
+		<v-card-text>
+			<v-list>
+				<v-list-item
+					v-for="vehicle in vehicles"
+					:key="vehicle.device_id"
+					:class="{ offline: !vehicle.online }"
+				>
+					<template v-slot:prepend>
+						<v-icon :color="getStatusColor(vehicle)">
+							{{
+								vehicle.active_state.toLowerCase() === "driving"
+									? "mdi-car"
+									: "mdi-car-parked"
+							}}
+						</v-icon>
+					</template>
+
+					<v-list-item-title class="font-weight-medium">
+						{{ vehicle.display_name }}
+					</v-list-item-title>
+
+					<v-list-item-subtitle>
+						<div class="vehicle-details">
+							<div>Status: {{ vehicle.active_state }}</div>
+							<div>
+								Speed:
+								{{
+									vehicle.latest_device_point?.device_point_detail?.speed
+										?.display || "N/A"
+								}}
+							</div>
+							<div class="text-caption">
+								Last Updated:
+								{{ formatLastUpdate(vehicle.latest_device_point?.dt_tracker) }}
+							</div>
+						</div>
+					</v-list-item-subtitle>
+
+					<template v-slot:append>
+						<div class="d-flex align-center">
+							<v-btn
+								icon="mdi-pencil"
+								size="small"
+								class="mr-2"
+								color="primary"
+								@click="emit('edit', vehicle)"
+							>
+								<v-tooltip activator="parent" location="top">Edit</v-tooltip>
+							</v-btn>
+							<v-btn
+								icon="mdi-delete"
+								size="small"
+								color="error"
+								@click="emit('delete', vehicle.device_id)"
+							>
+								<v-tooltip activator="parent" location="top">Delete</v-tooltip>
+							</v-btn>
+						</div>
+					</template>
+				</v-list-item>
+			</v-list>
+		</v-card-text>
+	</v-card>
+</template>
+
+<style scoped>
+.vehicle-list {
+	height: 100%;
+}
+
+.vehicle-details {
+	font-size: 0.875rem;
+	line-height: 1.4;
+}
+
+.offline {
+	opacity: 0.7;
+}
+</style>
