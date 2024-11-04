@@ -6,19 +6,23 @@ const props = defineProps({
 	},
 });
 
-const emit = defineEmits(["edit", "delete"]);
-
 const getStatusColor = (vehicle) => {
 	if (!vehicle.online) return "error";
-	switch (vehicle.active_state.toLowerCase()) {
-		case "active":
-		case "driving":
-			return "success";
-		case "idle":
-			return "warning";
-		default:
-			return "grey";
-	}
+	if (vehicle.latest_device_point?.speed > 0) return "success";
+	return "warning";
+};
+
+const getStatusIcon = (vehicle) => {
+	if (!vehicle.online) return "mdi-car-off";
+	return vehicle.latest_device_point?.speed > 0
+		? "mdi-car-side"
+		: "mdi-car-parked";
+};
+
+const formatSpeed = (vehicle) => {
+	return (
+		vehicle.latest_device_point?.device_point_detail?.speed?.display || "N/A"
+	);
 };
 
 const formatLastUpdate = (timestamp) => {
@@ -26,8 +30,12 @@ const formatLastUpdate = (timestamp) => {
 	return new Date(timestamp).toLocaleString();
 };
 
-// Debug log to check incoming data
-console.log("Vehicles in VehicleList:", props.vehicles);
+const getVehicleLocation = (vehicle) => {
+	const lat = vehicle.latest_device_point?.lat;
+	const lng = vehicle.latest_device_point?.lng;
+	if (!lat || !lng) return "Unknown";
+	return `${lat.toFixed(4)}, ${lng.toFixed(4)}`;
+};
 </script>
 
 <template>
@@ -36,7 +44,19 @@ console.log("Vehicles in VehicleList:", props.vehicles);
 			<v-icon class="mr-2">mdi-car-multiple</v-icon>
 			Vehicles
 			<v-spacer></v-spacer>
-			<v-chip class="ml-2">{{ vehicles.length }} Total</v-chip>
+			<v-chip
+				:color="
+					vehicles.filter((v) => v.online).length === vehicles.length
+						? 'success'
+						: 'warning'
+				"
+				class="ml-2"
+			>
+				{{ vehicles.filter((v) => v.online).length }}/{{
+					vehicles.length
+				}}
+				Online
+			</v-chip>
 		</v-card-title>
 
 		<v-card-text>
@@ -48,57 +68,37 @@ console.log("Vehicles in VehicleList:", props.vehicles);
 				>
 					<template v-slot:prepend>
 						<v-icon :color="getStatusColor(vehicle)">
-							{{
-								vehicle.device_state?.drive_status === "driving"
-									? "mdi-car"
-									: "mdi-car-parked"
-							}}
+							{{ getStatusIcon(vehicle) }}
 						</v-icon>
 					</template>
 
-					<v-list-item-title class="font-weight-medium">
-						{{ vehicle.display_name }}
+					<v-list-item-title class="d-flex align-center">
+						<span class="font-weight-medium">{{ vehicle.display_name }}</span>
+						<v-chip
+							size="x-small"
+							:color="vehicle.online ? 'success' : 'error'"
+							class="ml-2"
+						>
+							{{ vehicle.online ? "ONLINE" : "OFFLINE" }}
+						</v-chip>
 					</v-list-item-title>
 
 					<v-list-item-subtitle>
 						<div class="vehicle-details">
-							<div>
-								Status: {{ vehicle.device_state?.drive_status || "Unknown" }}
+							<div class="d-flex align-center">
+								<v-icon size="small" class="mr-1">mdi-speedometer</v-icon>
+								{{ formatSpeed(vehicle) }}
 							</div>
-							<div>
-								Speed:
-								{{
-									vehicle.latest_device_point?.detail?.speed?.display || "N/A"
-								}}
+							<div class="d-flex align-center">
+								<v-icon size="small" class="mr-1">mdi-map-marker</v-icon>
+								{{ getVehicleLocation(vehicle) }}
 							</div>
-							<div class="text-caption">
+							<div class="text-caption mt-1">
 								Last Updated:
 								{{ formatLastUpdate(vehicle.latest_device_point?.dt_tracker) }}
 							</div>
 						</div>
 					</v-list-item-subtitle>
-
-					<template v-slot:append>
-						<div class="d-flex align-center">
-							<v-btn
-								icon="mdi-pencil"
-								size="small"
-								class="mr-2"
-								color="primary"
-								@click="emit('edit', vehicle)"
-							>
-								<v-tooltip activator="parent" location="top">Edit</v-tooltip>
-							</v-btn>
-							<v-btn
-								icon="mdi-delete"
-								size="small"
-								color="error"
-								@click="emit('delete', vehicle.device_id)"
-							>
-								<v-tooltip activator="parent" location="top">Delete</v-tooltip>
-							</v-btn>
-						</div>
-					</template>
 				</v-list-item>
 			</v-list>
 		</v-card-text>
@@ -117,5 +117,9 @@ console.log("Vehicles in VehicleList:", props.vehicles);
 
 .offline {
 	opacity: 0.7;
+}
+
+.vehicle-details > div {
+	margin-bottom: 2px;
 }
 </style>
