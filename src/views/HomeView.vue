@@ -27,7 +27,7 @@ const initWebSocket = () => {
 	};
 
 	socket.onmessage = (event) => {
-		console.log("WebSocket message received");
+		console.log("WebSocket message received", event.data);
 		const vehicleUpdates = JSON.parse(event.data);
 		vehicles.value = vehicleUpdates;
 	};
@@ -45,6 +45,7 @@ const initWebSocket = () => {
 const fetchVehicles = async () => {
 	try {
 		const response = await axios.get(`${API_BASE_URL}/vehicles`);
+		console.log("Fetched vehicles:", response.data); // Debug log
 		vehicles.value = response.data;
 	} catch (error) {
 		console.error("Error fetching vehicles:", error);

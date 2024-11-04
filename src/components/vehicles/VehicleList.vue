@@ -25,6 +25,9 @@ const formatLastUpdate = (timestamp) => {
 	if (!timestamp) return "N/A";
 	return new Date(timestamp).toLocaleString();
 };
+
+// Debug log to check incoming data
+console.log("Vehicles in VehicleList:", props.vehicles);
 </script>
 
 <template>
@@ -46,7 +49,7 @@ const formatLastUpdate = (timestamp) => {
 					<template v-slot:prepend>
 						<v-icon :color="getStatusColor(vehicle)">
 							{{
-								vehicle.active_state.toLowerCase() === "driving"
+								vehicle.device_state?.drive_status === "driving"
 									? "mdi-car"
 									: "mdi-car-parked"
 							}}
@@ -59,12 +62,13 @@ const formatLastUpdate = (timestamp) => {
 
 					<v-list-item-subtitle>
 						<div class="vehicle-details">
-							<div>Status: {{ vehicle.active_state }}</div>
+							<div>
+								Status: {{ vehicle.device_state?.drive_status || "Unknown" }}
+							</div>
 							<div>
 								Speed:
 								{{
-									vehicle.latest_device_point?.device_point_detail?.speed
-										?.display || "N/A"
+									vehicle.latest_device_point?.detail?.speed?.display || "N/A"
 								}}
 							</div>
 							<div class="text-caption">
