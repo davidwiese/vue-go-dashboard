@@ -9,47 +9,14 @@ const props = defineProps({
 	},
 });
 
-const zoom = ref(13);
-const center = ref([34.052235, -118.243683]);
-const mapRef = ref(null);
-
-// Calculate bounds to fit all vehicles
-const fitVehicleBounds = () => {
-	if (!props.vehicles.length || !mapRef.value) return;
-
-	const validCoords = props.vehicles
-		.filter((v) => v.latest_device_point?.lat && v.latest_device_point?.lng)
-		.map((v) => [v.latest_device_point.lat, v.latest_device_point.lng]);
-
-	if (validCoords.length > 0) {
-		const bounds = L.latLngBounds(validCoords);
-		mapRef.value.leafletObject.fitBounds(bounds, {
-			padding: [50, 50], // Add padding around the bounds
-			maxZoom: 15, // Prevent excessive zoom when vehicles are close together
-		});
-	}
-};
-
-// Watch for vehicles data changes and fit bounds
-watch(
-	() => props.vehicles,
-	(newVehicles) => {
-		if (newVehicles.length > 0) {
-			fitVehicleBounds();
-		}
-	},
-	{ immediate: true }
-);
-
-// Also fit bounds when map is mounted
-onMounted(() => {
-	fitVehicleBounds();
-});
+// California centered, zoom level to show the whole state
+const zoom = ref(6);
+const center = ref([36.7783, -119.4179]);
 
 const getMarkerColor = (vehicle) => {
-	if (!vehicle.online) return "gray";
-	if (vehicle.latest_device_point?.speed > 0) return "green";
-	return "orange";
+	if (!vehicle.online) return "#9e9e9e"; // gray
+	if (vehicle.latest_device_point?.speed > 0) return "#4caf50"; // green
+	return "#ff9800"; // orange
 };
 
 const formatSpeed = (vehicle) => {
@@ -57,13 +24,43 @@ const formatSpeed = (vehicle) => {
 		vehicle.latest_device_point?.device_point_detail?.speed?.display || "N/A"
 	);
 };
+
+// Create custom icon options based on vehicle status
+const getMarkerOptions = (vehicle) => {
+	return {
+		icon: L.divIcon({
+			className: "custom-div-icon",
+			html: `
+        <div style="
+          background-color: ${getMarkerColor(vehicle)};
+          width: 30px;
+          height: 30px;
+          border-radius: 50%;
+          border: 2px solid white;
+          box-shadow: 0 0 4px rgba(0,0,0,0.4);
+          display: flex;
+          align-items: center;
+          justify-content: center;
+        ">
+          <i class="mdi ${
+						vehicle.latest_device_point?.speed > 0 ? "mdi-car-side" : "mdi-car"
+					}" 
+            style="color: white; font-size: 16px;">
+          </i>
+        </div>
+      `,
+			iconSize: [30, 30],
+			iconAnchor: [15, 15],
+		}),
+	};
+};
 </script>
 
 <template>
 	<v-card class="map-container">
 		<v-card-text>
 			<div style="height: 500px; width: 100%">
-				<l-map ref="mapRef" v-model:zoom="zoom" :center="center">
+				<l-map v-model:zoom="zoom" :center="center" :zoomAnimation="true">
 					<l-tile-layer
 						url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
 						layer-type="base"
@@ -76,6 +73,7 @@ const formatSpeed = (vehicle) => {
 							vehicle.latest_device_point?.lat || 0,
 							vehicle.latest_device_point?.lng || 0,
 						]"
+						:options="getMarkerOptions(vehicle)"
 					>
 						<l-popup>
 							<div class="vehicle-popup">
