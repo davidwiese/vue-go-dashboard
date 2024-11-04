@@ -117,8 +117,9 @@ onBeforeUnmount(() => {
 			</v-row>
 
 			<EditVehicleDialog
-				v-model:show="editDialog"
-				:vehicle="editedVehicle"
+				:show="editDialog"
+				:vehicle="editedVehicle || {}"
+				@update:show="editDialog = $event"
 				@save="handleUpdate"
 			/>
 		</v-container>

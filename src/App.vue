@@ -14,12 +14,6 @@ onMounted(() => {
 
 		<v-main>
 			<v-container>
-				<div
-					class="debug"
-					style="background: #f0f0f0; padding: 10px; margin-bottom: 10px"
-				>
-					App Layout Loaded
-				</div>
 				<router-view v-slot="{ Component }">
 					<template v-if="Component">
 						<component :is="Component" />

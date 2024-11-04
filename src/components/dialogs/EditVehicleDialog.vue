@@ -39,7 +39,12 @@ const save = () => {
 </script>
 
 <template>
-	<v-dialog v-model="show" max-width="500px" persistent>
+	<v-dialog
+		:model-value="show"
+		@update:model-value="$emit('update:show', $event)"
+		max-width="500px"
+		persistent
+	>
 		<v-card>
 			<v-card-title>
 				<span class="text-h5">Edit Vehicle</span>
