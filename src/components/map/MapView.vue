@@ -15,8 +15,7 @@ const center = ref([36.7783, -119.4179]);
 
 const getMarkerColor = (vehicle) => {
 	if (!vehicle.online) return "#9e9e9e"; // gray
-	if (vehicle.latest_device_point?.speed > 0) return "#4caf50"; // green
-	return "#ff9800"; // orange
+	return "#4caf50"; // green
 };
 
 const formatSpeed = (vehicle) => {
@@ -42,11 +41,7 @@ const getMarkerOptions = (vehicle) => {
           align-items: center;
           justify-content: center;
         ">
-          <i class="mdi ${
-						vehicle.latest_device_point?.speed > 0 ? "mdi-car-side" : "mdi-car"
-					}" 
-            style="color: white; font-size: 16px;">
-          </i>
+          <i class="mdi mdi-car-side" style="color: white; font-size: 16px;"></i>
         </div>
       `,
 			iconSize: [30, 30],
