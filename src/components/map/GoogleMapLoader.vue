@@ -1,6 +1,5 @@
 <script setup>
 import { ref, onMounted } from "vue";
-import { Loader } from "@googlemaps/js-api-loader";
 
 const props = defineProps({
 	mapConfig: {
@@ -22,20 +21,27 @@ const initializeMap = async () => {
 		console.log("Initializing map with config:", props.mapConfig);
 		console.log("Map ID:", import.meta.env.VITE_GOOGLE_MAPS_MAP_ID);
 
-		const loader = new Loader({
-			apiKey: props.apiKey,
-			version: "weekly",
-			libraries: ["marker"],
+		// Load the Maps JavaScript API using the script loader
+		const script = document.createElement("script");
+		script.src = `https://maps.googleapis.com/maps/api/js?key=${props.apiKey}&libraries=marker&v=weekly`;
+		document.head.appendChild(script);
+
+		await new Promise((resolve) => {
+			script.onload = resolve;
 		});
 
-		google.value = await loader.load();
+		// Import required libraries
+		const { Map } = await window.google.maps.importLibrary("maps");
+		google.value = window.google;
+
 		console.log("Google Maps loaded");
 
-		map.value = new google.value.maps.Map(googleMap.value, {
+		map.value = new Map(googleMap.value, {
 			...props.mapConfig,
 			mapId: import.meta.env.VITE_GOOGLE_MAPS_MAP_ID,
 		});
-		console.log("Map created");
+
+		console.log("Map created with ID:", map.value.mapId);
 	} catch (error) {
 		console.error("Error loading Google Maps:", error);
 	}
