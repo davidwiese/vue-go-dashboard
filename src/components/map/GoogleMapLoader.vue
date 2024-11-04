@@ -22,6 +22,7 @@ const initializeMap = async () => {
 		const loader = new Loader({
 			apiKey: props.apiKey,
 			version: "weekly",
+			libraries: ["marker"],
 		});
 
 		google.value = await loader.load();

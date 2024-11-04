@@ -19,28 +19,32 @@ const props = defineProps({
 let marker = null;
 let infoWindow = null;
 
-const createMarker = () => {
+const getStatusColor = (vehicle) => {
+	if (!vehicle.online) return "#de96a2";
+	if (vehicle.latest_device_point?.speed > 0) return "#4caf50";
+	return "#ff9800";
+};
+
+const createMarker = async () => {
 	if (!props.vehicle.latest_device_point) return;
 
-	// Create marker
-	marker = new props.google.maps.Marker({
+	const { AdvancedMarkerElement } = await google.maps.importLibrary("marker");
+
+	// Create the marker element
+	const markerView = new google.maps.marker.PinElement({
+		background: getStatusColor(props.vehicle),
+		borderColor: "#ffffff",
+		glyph: props.vehicle.online ? "mdi-car-side" : "mdi-car-off",
+	});
+
+	// Create the advanced marker
+	marker = new AdvancedMarkerElement({
 		position: {
 			lat: props.vehicle.latest_device_point.lat,
 			lng: props.vehicle.latest_device_point.lng,
 		},
 		map: props.map,
-		icon: {
-			path: props.google.maps.SymbolPath.CIRCLE,
-			fillColor: props.vehicle.online
-				? props.vehicle.latest_device_point.speed > 0
-					? "#4caf50"
-					: "#ff9800"
-				: "#de96a2",
-			fillOpacity: 1,
-			strokeWeight: 2,
-			strokeColor: "#ffffff",
-			scale: 8,
-		},
+		content: markerView.element,
 		title: props.vehicle.display_name,
 	});
 
@@ -71,10 +75,10 @@ watch(
 	() => props.vehicle.latest_device_point,
 	(newPoint) => {
 		if (marker && newPoint) {
-			marker.setPosition({
+			marker.position = {
 				lat: newPoint.lat,
 				lng: newPoint.lng,
-			});
+			};
 		}
 	},
 	{ deep: true }
