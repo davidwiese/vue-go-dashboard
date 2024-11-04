@@ -13,9 +13,6 @@ const props = defineProps({
 const mapConfig = computed(() => ({
 	center: { lat: 36.7783, lng: -119.4179 }, // California center
 	zoom: 6,
-	styles: [
-		// Add any custom map styles here
-	],
 }));
 
 const API_KEY = import.meta.env.VITE_GOOGLE_MAPS_API_KEY;

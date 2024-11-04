@@ -26,7 +26,10 @@ const initializeMap = async () => {
 		});
 
 		google.value = await loader.load();
-		map.value = new google.value.maps.Map(googleMap.value, props.mapConfig);
+		map.value = new google.value.maps.Map(googleMap.value, {
+			...props.mapConfig,
+			mapId: import.meta.env.VITE_GOOGLE_MAPS_MAP_ID, // Add the Map ID here
+		});
 	} catch (error) {
 		console.error("Error loading Google Maps:", error);
 	}
