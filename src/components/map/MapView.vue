@@ -15,7 +15,8 @@ const center = ref([36.7783, -119.4179]);
 
 const getMarkerColor = (vehicle) => {
 	if (!vehicle.online) return "#9e9e9e"; // gray
-	return "#4caf50"; // green
+	if (vehicle.latest_device_point?.speed > 0) return "#4caf50"; // green
+	return "#ff9800"; // orange
 };
 
 const formatSpeed = (vehicle) => {

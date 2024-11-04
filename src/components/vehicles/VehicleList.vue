@@ -14,9 +14,7 @@ const getStatusColor = (vehicle) => {
 
 const getStatusIcon = (vehicle) => {
 	if (!vehicle.online) return "mdi-car-off";
-	return vehicle.latest_device_point?.speed > 0
-		? "mdi-car-side"
-		: "mdi-car-parked";
+	return "mdi-car-side";
 };
 
 const formatSpeed = (vehicle) => {
@@ -52,9 +50,7 @@ const getVehicleLocation = (vehicle) => {
 				"
 				class="ml-2"
 			>
-				{{ vehicles.filter((v) => v.online).length }}/{{
-					vehicles.length
-				}}
+				{{ vehicles.filter((v) => v.online).length }}/{{ vehicles.length }}
 				Online
 			</v-chip>
 		</v-card-title>
