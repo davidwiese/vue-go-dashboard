@@ -19,6 +19,9 @@ const map = ref(null);
 
 const initializeMap = async () => {
 	try {
+		console.log("Initializing map with config:", props.mapConfig);
+		console.log("Map ID:", import.meta.env.VITE_GOOGLE_MAPS_MAP_ID);
+
 		const loader = new Loader({
 			apiKey: props.apiKey,
 			version: "weekly",
@@ -26,10 +29,13 @@ const initializeMap = async () => {
 		});
 
 		google.value = await loader.load();
+		console.log("Google Maps loaded");
+
 		map.value = new google.value.maps.Map(googleMap.value, {
 			...props.mapConfig,
-			mapId: import.meta.env.VITE_GOOGLE_MAPS_MAP_ID, // Add the Map ID here
+			mapId: import.meta.env.VITE_GOOGLE_MAPS_MAP_ID,
 		});
+		console.log("Map created");
 	} catch (error) {
 		console.error("Error loading Google Maps:", error);
 	}

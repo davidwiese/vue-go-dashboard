@@ -1,5 +1,5 @@
 <script setup>
-import { onMounted, watch } from "vue";
+import { onMounted, watch, onBeforeUnmount } from "vue";
 
 const props = defineProps({
 	google: {
@@ -19,54 +19,75 @@ const props = defineProps({
 let marker = null;
 let infoWindow = null;
 
-const createMarker = () => {
-	if (!props.vehicle.latest_device_point) return;
+const getMarkerIcon = (vehicle) => {
+	// Get the color based on vehicle status
+	const backgroundColor = vehicle.online
+		? vehicle.latest_device_point.speed > 0
+			? "#4caf50"
+			: "#ff9800"
+		: "#de96a2";
 
-	// Create marker
-	marker = new props.google.maps.Marker({
-		position: {
-			lat: props.vehicle.latest_device_point.lat,
-			lng: props.vehicle.latest_device_point.lng,
-		},
-		map: props.map,
-		icon: {
-			path: props.google.maps.SymbolPath.CIRCLE,
-			fillColor: props.vehicle.online
-				? props.vehicle.latest_device_point.speed > 0
-					? "#4caf50"
-					: "#ff9800"
-				: "#de96a2",
-			fillOpacity: 1,
-			strokeWeight: 2,
-			strokeColor: "#ffffff",
-			scale: 8,
-		},
-		title: props.vehicle.display_name,
-	});
-
-	// Create info window
-	infoWindow = new props.google.maps.InfoWindow({
-		content: `
-      <div class="info-window">
-        <h3>${props.vehicle.display_name}</h3>
-        <p>Status: ${props.vehicle.online ? "Online" : "Offline"}</p>
-        <p>Speed: ${
-					props.vehicle.latest_device_point.device_point_detail.speed.display
-				}</p>
-        <p>Last Updated: ${new Date(
-					props.vehicle.latest_device_point.dt_tracker
-				).toLocaleString()}</p>
-      </div>
-    `,
-	});
-
-	// Add click listener
-	marker.addListener("click", () => {
-		infoWindow.open(props.map, marker);
-	});
+	// Create an SVG marker icon
+	return {
+		path: google.maps.SymbolPath.CIRCLE,
+		fillColor: backgroundColor,
+		fillOpacity: 1,
+		strokeColor: "#FFFFFF",
+		strokeWeight: 2,
+		scale: 12,
+	};
 };
 
-// Update marker position when vehicle data changes
+const createMarker = async () => {
+	if (!props.vehicle.latest_device_point) return;
+
+	try {
+		// Use standard Marker with custom icon
+		const { Marker } = await google.maps.importLibrary("marker");
+
+		marker = new Marker({
+			map: props.map,
+			position: {
+				lat: props.vehicle.latest_device_point.lat,
+				lng: props.vehicle.latest_device_point.lng,
+			},
+			icon: getMarkerIcon(props.vehicle),
+			title: props.vehicle.display_name,
+		});
+
+		// Create info window
+		infoWindow = new props.google.maps.InfoWindow({
+			content: `
+        <div class="info-window" style="padding: 8px;">
+          <h3 style="margin: 0 0 8px 0;">${props.vehicle.display_name}</h3>
+          <p style="margin: 4px 0;">Status: ${
+						props.vehicle.online ? "Online" : "Offline"
+					}</p>
+          <p style="margin: 4px 0;">Speed: ${
+						props.vehicle.latest_device_point.device_point_detail.speed.display
+					}</p>
+          <p style="margin: 4px 0; font-size: 0.9em;">Last Updated: ${new Date(
+						props.vehicle.latest_device_point.dt_tracker
+					).toLocaleString()}</p>
+        </div>
+      `,
+		});
+
+		marker.addListener("click", () => {
+			infoWindow.open(props.map, marker);
+		});
+
+		console.log("Marker created:", {
+			position: marker.getPosition().toJSON(),
+			map: !!marker.getMap(),
+			title: marker.getTitle(),
+		});
+	} catch (error) {
+		console.error("Error creating marker:", error);
+	}
+};
+
+// Update marker position and icon when vehicle data changes
 watch(
 	() => props.vehicle.latest_device_point,
 	(newPoint) => {
@@ -75,14 +96,26 @@ watch(
 				lat: newPoint.lat,
 				lng: newPoint.lng,
 			});
+			marker.setIcon(getMarkerIcon(props.vehicle));
 		}
 	},
 	{ deep: true }
 );
 
-onMounted(createMarker);
+onMounted(() => {
+	createMarker();
+});
+
+onBeforeUnmount(() => {
+	if (marker) {
+		marker.setMap(null);
+	}
+	if (infoWindow) {
+		infoWindow.close();
+	}
+});
 </script>
 
 <template>
-	<!-- Marker is handled in script -->
+	<div style="display: none"></div>
 </template>
