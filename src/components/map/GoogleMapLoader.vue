@@ -16,27 +16,39 @@ const googleMap = ref(null);
 const google = ref(null);
 const map = ref(null);
 
+const loadGoogleMaps = () => {
+	return new Promise((resolve) => {
+		if (window.google?.maps) {
+			resolve(window.google);
+			return;
+		}
+
+		// Only add the script if it's not already present
+		if (
+			!document.querySelector('script[src*="maps.googleapis.com/maps/api/js"]')
+		) {
+			const script = document.createElement("script");
+			script.src = `https://maps.googleapis.com/maps/api/js?key=${props.apiKey}&libraries=marker&v=weekly&callback=initMap&loading=async`;
+			script.async = true;
+			document.head.appendChild(script);
+		}
+
+		window.initMap = () => {
+			resolve(window.google);
+		};
+	});
+};
+
 const initializeMap = async () => {
 	try {
 		console.log("Initializing map with config:", props.mapConfig);
 		console.log("Map ID:", import.meta.env.VITE_GOOGLE_MAPS_MAP_ID);
 
-		// Load the Maps JavaScript API using the script loader
-		const script = document.createElement("script");
-		script.src = `https://maps.googleapis.com/maps/api/js?key=${props.apiKey}&libraries=marker&v=weekly`;
-		document.head.appendChild(script);
-
-		await new Promise((resolve) => {
-			script.onload = resolve;
-		});
-
-		// Import required libraries
-		const { Map } = await window.google.maps.importLibrary("maps");
-		google.value = window.google;
+		google.value = await loadGoogleMaps();
 
 		console.log("Google Maps loaded");
 
-		map.value = new Map(googleMap.value, {
+		map.value = new google.value.maps.Map(googleMap.value, {
 			...props.mapConfig,
 			mapId: import.meta.env.VITE_GOOGLE_MAPS_MAP_ID,
 		});
