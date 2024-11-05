@@ -54,12 +54,16 @@ const error = ref("");
 const loadPreferences = async () => {
 	try {
 		loading.value = true;
+		error.value = "";
+		const clientId = getClientId();
 		const response = await axios.get<SavedPreference[]>(
-			`${API_BASE_URL}/preferences?client_id=${getClientId()}`
+			`${API_BASE_URL}/preferences?client_id=${clientId}`
 		);
+
+		// Initialize preferences map
 		const prefsMap = new Map<string, Preference>();
 
-		// Initialize preferences for all vehicles first
+		// Initialize preferences for all vehicles with defaults
 		props.vehicles.forEach((vehicle) => {
 			prefsMap.set(vehicle.device_id, {
 				isHidden: false,
@@ -68,7 +72,7 @@ const loadPreferences = async () => {
 			});
 		});
 
-		// Then override with saved preferences
+		// Override with any saved preferences from the database
 		response.data.forEach((pref) => {
 			prefsMap.set(pref.device_id, {
 				isHidden: pref.is_hidden,
@@ -96,58 +100,54 @@ const savePreference = async (deviceId: string) => {
 		const pref = preferences.value.get(deviceId);
 		if (!pref) return;
 
-		try {
-			const existing = await axios.get<SavedPreference>(
-				`${API_BASE_URL}/preferences/${deviceId}?client_id=${getClientId()}`
-			);
+		const clientId = getClientId();
+		const payload = {
+			device_id: deviceId,
+			client_id: clientId,
+			display_name: pref.displayName,
+			is_hidden: pref.isHidden,
+			sort_order: pref.sortOrder,
+		};
 
-			if (existing.data) {
-				await axios.put(`${API_BASE_URL}/preferences/${deviceId}`, {
-					display_name: pref.displayName,
-					is_hidden: pref.isHidden,
-					sort_order: pref.sortOrder,
-					client_id: getClientId(),
-				});
-			}
+		// Try to create first (which will update if exists)
+		try {
+			await axios.post(`${API_BASE_URL}/preferences`, payload);
 		} catch (err) {
-			if (axios.isAxiosError(err) && err.response?.status === 404) {
-				await axios.post(`${API_BASE_URL}/preferences`, {
-					device_id: deviceId,
-					display_name: pref.displayName,
-					is_hidden: pref.isHidden,
-					sort_order: pref.sortOrder,
-					client_id: getClientId(),
-				});
-			} else {
-				throw err;
+			console.error("Error saving preference:", err);
+			error.value = "Failed to save preference";
+			// Revert the local change since save failed
+			const currentPref = preferences.value.get(deviceId);
+			if (currentPref) {
+				currentPref.isHidden = !currentPref.isHidden;
 			}
+			return;
 		}
+
+		await loadPreferences(); // Reload preferences after successful save
 		emit("preferences-updated");
 	} catch (err) {
-		console.error("Error saving preference:", err);
+		console.error("Error in savePreference:", err);
 		error.value = "Failed to save preference";
+		// Revert the local change since save failed
+		const pref = preferences.value.get(deviceId);
+		if (pref) {
+			pref.isHidden = !pref.isHidden;
+		}
 	}
 };
-
-// Initialize preferences for vehicles that don't have them
-// const initializePreferences = () => {
-// 	props.vehicles.forEach((vehicle) => {
-// 		if (!preferences.value.has(vehicle.device_id)) {
-// 			preferences.value.set(vehicle.device_id, {
-// 				isHidden: false,
-// 				sortOrder: 0,
-// 				displayName: vehicle.display_name,
-// 			});
-// 		}
-// 	});
-// };
 
 // Toggle vehicle visibility
 const toggleVisibility = async (deviceId: string) => {
 	const pref = preferences.value.get(deviceId);
 	if (pref) {
-		pref.isHidden = !pref.isHidden;
-		await savePreference(deviceId);
+		const newIsHidden = !pref.isHidden;
+		pref.isHidden = newIsHidden; // Update optimistically
+		try {
+			await savePreference(deviceId);
+		} catch (err) {
+			// savePreference already handles error case and reverts the change
+			console.error("Error toggling visibility:", err);
+		}
 	}
 };
 

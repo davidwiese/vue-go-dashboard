@@ -2,6 +2,7 @@
 import { ref, computed } from "vue";
 import VehiclePreferences from "./VehiclePreferences.vue";
 import axios from "axios";
+import { getClientId } from "@/utils/clientId";
 
 const props = defineProps({
 	vehicles: {
@@ -16,7 +17,10 @@ const preferences = ref(new Map());
 // Load preferences
 const loadPreferences = async () => {
 	try {
-		const response = await axios.get("http://localhost:5000/preferences");
+		const clientId = getClientId();
+		const response = await axios.get(
+			`http://localhost:5000/preferences?client_id=${clientId}`
+		);
 		const prefsMap = new Map();
 		response.data.forEach((pref) => {
 			prefsMap.set(pref.device_id, {
