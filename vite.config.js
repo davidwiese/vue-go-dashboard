@@ -12,6 +12,6 @@ export default defineConfig({
 		},
 	},
 	optimizeDeps: {
-		include: ["@vue-leaflet/vue-leaflet", "leaflet"],
+		include: [],
 	},
 });
