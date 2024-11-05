@@ -152,31 +152,70 @@ const toggleVisibility = async (deviceId: string) => {
 };
 
 const toggleAllVisibility = async (show: boolean) => {
-	for (const vehicle of props.vehicles) {
-		const pref = preferences.value.get(vehicle.device_id);
-		if (pref) {
-			pref.isHidden = !show;
-			await savePreference(vehicle.device_id);
+	try {
+		loading.value = true;
+		for (const vehicle of props.vehicles) {
+			const pref = preferences.value.get(vehicle.device_id);
+			if (pref) {
+				pref.isHidden = !show;
+				await savePreference(vehicle.device_id);
+			}
 		}
+		emit("preferences-updated");
+	} catch (err) {
+		console.error("Error toggling visibility:", err);
+		error.value = "Failed to update visibility";
+	} finally {
+		loading.value = false;
 	}
 };
 
 const sortAlphabetically = async () => {
-	const vehicles = [...props.vehicles].sort((a, b) => {
-		const aName =
-			preferences.value.get(a.device_id)?.displayName || a.display_name;
-		const bName =
-			preferences.value.get(b.device_id)?.displayName || b.display_name;
-		return aName.localeCompare(bName);
-	});
+	try {
+		loading.value = true;
+		const vehicles = [...props.vehicles].sort((a, b) => {
+			const aName =
+				preferences.value.get(a.device_id)?.displayName || a.display_name;
+			const bName =
+				preferences.value.get(b.device_id)?.displayName || b.display_name;
+			return aName.localeCompare(bName);
+		});
 
-	vehicles.forEach((vehicle, idx) => {
-		const pref = preferences.value.get(vehicle.device_id);
-		if (pref) {
-			pref.sortOrder = idx;
-			savePreference(vehicle.device_id);
+		// Update sort orders
+		vehicles.forEach((vehicle, idx) => {
+			const pref = preferences.value.get(vehicle.device_id);
+			if (pref) {
+				pref.sortOrder = idx;
+				savePreference(vehicle.device_id);
+			}
+		});
+
+		emit("preferences-updated");
+	} catch (err) {
+		console.error("Error sorting vehicles:", err);
+		error.value = "Failed to sort vehicles";
+	} finally {
+		loading.value = false;
+	}
+};
+
+const hideInactiveVehicles = async () => {
+	try {
+		loading.value = true;
+		for (const vehicle of props.vehicles) {
+			const pref = preferences.value.get(vehicle.device_id);
+			if (pref && !vehicle.online) {
+				pref.isHidden = true;
+				await savePreference(vehicle.device_id);
+			}
 		}
-	});
+		emit("preferences-updated");
+	} catch (err) {
+		console.error("Error hiding inactive vehicles:", err);
+		error.value = "Failed to hide inactive vehicles";
+	} finally {
+		loading.value = false;
+	}
 };
 
 // Update display name
@@ -257,6 +296,53 @@ onMounted(() => {
 					<v-icon>mdi-close</v-icon>
 				</v-btn>
 			</v-card-title>
+
+			<v-card-subtitle>
+				<div class="d-flex align-center gap-2 my-2">
+					<v-btn
+						variant="tonal"
+						size="small"
+						prepend-icon="mdi-sort-alphabetical-ascending"
+						@click="sortAlphabetically"
+						:loading="loading"
+					>
+						Sort A-Z
+					</v-btn>
+
+					<v-btn
+						variant="tonal"
+						size="small"
+						prepend-icon="mdi-eye"
+						@click="toggleAllVisibility(true)"
+						:loading="loading"
+					>
+						Show All
+					</v-btn>
+
+					<v-btn
+						variant="tonal"
+						size="small"
+						prepend-icon="mdi-eye-off"
+						@click="toggleAllVisibility(false)"
+						:loading="loading"
+					>
+						Hide All
+					</v-btn>
+
+					<v-btn
+						variant="tonal"
+						size="small"
+						prepend-icon="mdi-car-off"
+						@click="hideInactiveVehicles"
+						:loading="loading"
+						color="warning"
+					>
+						Hide Inactive
+					</v-btn>
+				</div>
+			</v-card-subtitle>
+
+			<v-divider></v-divider>
 
 			<v-card-text>
 				<v-alert
