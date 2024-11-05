@@ -40,20 +40,4 @@ const API_KEY = import.meta.env.VITE_GOOGLE_MAPS_API_KEY;
 .map-container {
 	margin-bottom: 1rem;
 }
-
-.vehicle-popup {
-	padding: 8px;
-	min-width: 200px;
-}
-
-.popup-header {
-	display: flex;
-	align-items: center;
-	justify-content: space-between;
-	margin-bottom: 8px;
-}
-
-.popup-details > div {
-	margin-bottom: 4px;
-}
 </style>
