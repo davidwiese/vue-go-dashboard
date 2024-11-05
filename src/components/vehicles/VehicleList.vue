@@ -1,10 +1,53 @@
 <script setup>
+import { ref, computed } from "vue";
+import VehiclePreferences from "./VehiclePreferences.vue";
+import axios from "axios";
+
 const props = defineProps({
 	vehicles: {
 		type: Array,
 		required: true,
 	},
 });
+
+const showPreferences = ref(false);
+const preferences = ref(new Map());
+
+// Load preferences
+const loadPreferences = async () => {
+	try {
+		const response = await axios.get("http://localhost:5000/preferences");
+		const prefsMap = new Map();
+		response.data.forEach((pref) => {
+			prefsMap.set(pref.device_id, {
+				isHidden: pref.is_hidden,
+				sortOrder: pref.sort_order,
+				displayName: pref.display_name,
+			});
+		});
+		preferences.value = prefsMap;
+	} catch (err) {
+		console.error("Error loading preferences:", err);
+	}
+};
+
+// Apply preferences to vehicles
+const displayedVehicles = computed(() => {
+	return [...props.vehicles]
+		.filter((vehicle) => !preferences.value.get(vehicle.device_id)?.isHidden)
+		.sort((a, b) => {
+			const aOrder = preferences.value.get(a.device_id)?.sortOrder || 0;
+			const bOrder = preferences.value.get(b.device_id)?.sortOrder || 0;
+			return aOrder - bOrder;
+		});
+});
+
+const getDisplayName = (vehicle) => {
+	return (
+		preferences.value.get(vehicle.device_id)?.displayName ||
+		vehicle.display_name
+	);
+};
 
 const getStatusColor = (vehicle) => {
 	if (!vehicle.online) return "error";
@@ -34,6 +77,9 @@ const getVehicleLocation = (vehicle) => {
 	if (!lat || !lng) return "Unknown";
 	return `${lat.toFixed(4)}, ${lng.toFixed(4)}`;
 };
+
+// Load preferences when component mounts
+loadPreferences();
 </script>
 
 <template>
@@ -42,15 +88,27 @@ const getVehicleLocation = (vehicle) => {
 			<v-icon class="mr-2">mdi-car-multiple</v-icon>
 			Vehicles
 			<v-spacer></v-spacer>
+			<v-btn
+				icon
+				variant="text"
+				@click="showPreferences = true"
+				class="mr-2"
+				title="Vehicle Preferences"
+			>
+				<v-icon>mdi-cog</v-icon>
+			</v-btn>
 			<v-chip
 				:color="
-					vehicles.filter((v) => v.online).length === vehicles.length
+					displayedVehicles.filter((v) => v.online).length ===
+					displayedVehicles.length
 						? 'success'
 						: 'warning'
 				"
 				class="ml-2"
 			>
-				{{ vehicles.filter((v) => v.online).length }}/{{ vehicles.length }}
+				{{ displayedVehicles.filter((v) => v.online).length }}/{{
+					displayedVehicles.length
+				}}
 				Online
 			</v-chip>
 		</v-card-title>
@@ -58,7 +116,7 @@ const getVehicleLocation = (vehicle) => {
 		<v-card-text>
 			<v-list>
 				<v-list-item
-					v-for="vehicle in vehicles"
+					v-for="vehicle in displayedVehicles"
 					:key="vehicle.device_id"
 					:class="{ offline: !vehicle.online }"
 				>
@@ -69,7 +127,9 @@ const getVehicleLocation = (vehicle) => {
 					</template>
 
 					<v-list-item-title class="d-flex align-center">
-						<span class="font-weight-medium">{{ vehicle.display_name }}</span>
+						<span class="font-weight-medium">{{
+							getDisplayName(vehicle)
+						}}</span>
 						<v-chip
 							size="x-small"
 							:color="vehicle.online ? 'success' : 'error'"
@@ -98,6 +158,12 @@ const getVehicleLocation = (vehicle) => {
 				</v-list-item>
 			</v-list>
 		</v-card-text>
+
+		<VehiclePreferences
+			v-model:show="showPreferences"
+			:vehicles="vehicles"
+			@preferences-updated="loadPreferences"
+		/>
 	</v-card>
 </template>
 
