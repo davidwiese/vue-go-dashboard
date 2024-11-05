@@ -1,10 +1,36 @@
-<script setup>
+<script setup lang="ts">
 import { ref, onMounted, watch } from "vue";
 import axios from "axios";
 
+// Interface definitions
+interface Vehicle {
+	device_id: string;
+	display_name: string;
+	online: boolean;
+	latest_device_point?: {
+		speed: number;
+		lat: number;
+		lng: number;
+		dt_tracker: string;
+	};
+}
+
+interface Preference {
+	isHidden: boolean;
+	sortOrder: number;
+	displayName: string;
+}
+
+interface SavedPreference {
+	device_id: string;
+	display_name: string;
+	is_hidden: boolean;
+	sort_order: number;
+}
+
 const props = defineProps({
 	vehicles: {
-		type: Array,
+		type: Array as () => Vehicle[],
 		required: true,
 	},
 	show: {
@@ -13,10 +39,13 @@ const props = defineProps({
 	},
 });
 
-const emit = defineEmits(["update:show", "preferences-updated"]);
+const emit = defineEmits<{
+	(e: "update:show", value: boolean): void;
+	(e: "preferences-updated"): void;
+}>();
 
 const API_BASE_URL = "http://localhost:5000";
-const preferences = ref(new Map());
+const preferences = ref<Map<string, Preference>>(new Map());
 const loading = ref(false);
 const error = ref("");
 
@@ -24,8 +53,10 @@ const error = ref("");
 const loadPreferences = async () => {
 	try {
 		loading.value = true;
-		const response = await axios.get(`${API_BASE_URL}/preferences`);
-		const prefsMap = new Map();
+		const response = await axios.get<SavedPreference[]>(
+			`${API_BASE_URL}/preferences`
+		);
+		const prefsMap = new Map<string, Preference>();
 		response.data.forEach((pref) => {
 			prefsMap.set(pref.device_id, {
 				isHidden: pref.is_hidden,
@@ -33,7 +64,8 @@ const loadPreferences = async () => {
 				displayName:
 					pref.display_name ||
 					props.vehicles.find((v) => v.device_id === pref.device_id)
-						?.display_name,
+						?.display_name ||
+					"",
 			});
 		});
 		preferences.value = prefsMap;
@@ -46,28 +78,36 @@ const loadPreferences = async () => {
 };
 
 // Save preferences for a vehicle
-const savePreference = async (deviceId) => {
+const savePreference = async (deviceId: string) => {
 	try {
 		const pref = preferences.value.get(deviceId);
 		if (!pref) return;
 
-		const existing = await axios.get(`${API_BASE_URL}/preferences/${deviceId}`);
+		try {
+			const existing = await axios.get<SavedPreference>(
+				`${API_BASE_URL}/preferences/${deviceId}`
+			);
 
-		if (existing.data) {
-			// Update existing preference
-			await axios.put(`${API_BASE_URL}/preferences/${deviceId}`, {
-				display_name: pref.displayName,
-				is_hidden: pref.isHidden,
-				sort_order: pref.sortOrder,
-			});
-		} else {
-			// Create new preference
-			await axios.post(`${API_BASE_URL}/preferences`, {
-				device_id: deviceId,
-				display_name: pref.displayName,
-				is_hidden: pref.isHidden,
-				sort_order: pref.sortOrder,
-			});
+			if (existing.data) {
+				// Update existing preference
+				await axios.put(`${API_BASE_URL}/preferences/${deviceId}`, {
+					display_name: pref.displayName,
+					is_hidden: pref.isHidden,
+					sort_order: pref.sortOrder,
+				});
+			}
+		} catch (err) {
+			if (axios.isAxiosError(err) && err.response?.status === 404) {
+				// Create new preference
+				await axios.post(`${API_BASE_URL}/preferences`, {
+					device_id: deviceId,
+					display_name: pref.displayName,
+					is_hidden: pref.isHidden,
+					sort_order: pref.sortOrder,
+				});
+			} else {
+				throw err;
+			}
 		}
 		emit("preferences-updated");
 	} catch (err) {
@@ -90,7 +130,7 @@ const initializePreferences = () => {
 };
 
 // Toggle vehicle visibility
-const toggleVisibility = async (deviceId) => {
+const toggleVisibility = async (deviceId: string) => {
 	const pref = preferences.value.get(deviceId);
 	if (pref) {
 		pref.isHidden = !pref.isHidden;
@@ -99,26 +139,26 @@ const toggleVisibility = async (deviceId) => {
 };
 
 // Update display name
-const updateDisplayName = async (deviceId, event) => {
+const updateDisplayName = async (deviceId: string, event: string) => {
 	const pref = preferences.value.get(deviceId);
 	if (pref) {
-		pref.displayName = event.target.value;
+		pref.displayName = event;
 		await savePreference(deviceId);
 	}
 };
 
 // Handle drag and drop for sorting
-const draggedItem = ref(null);
+const draggedItem = ref<string | null>(null);
 
-const onDragStart = (deviceId) => {
+const onDragStart = (deviceId: string) => {
 	draggedItem.value = deviceId;
 };
 
-const onDragOver = (e) => {
+const onDragOver = (e: DragEvent) => {
 	e.preventDefault();
 };
 
-const onDrop = async (targetDeviceId) => {
+const onDrop = async (targetDeviceId: string) => {
 	if (!draggedItem.value || draggedItem.value === targetDeviceId) return;
 
 	const vehicles = Array.from(props.vehicles);
