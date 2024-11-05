@@ -76,12 +76,6 @@ const createMarker = async () => {
 		marker.addListener("click", () => {
 			infoWindow.open(props.map, marker);
 		});
-
-		console.log("Marker created:", {
-			position: marker.getPosition().toJSON(),
-			map: !!marker.getMap(),
-			title: marker.getTitle(),
-		});
 	} catch (error) {
 		console.error("Error creating marker:", error);
 	}

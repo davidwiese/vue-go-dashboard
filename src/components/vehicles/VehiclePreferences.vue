@@ -159,9 +159,9 @@ onMounted(() => {
 
 <template>
 	<v-dialog
-		v-model="show"
+		:model-value="show"
+		@update:model-value="$emit('update:show', $event)"
 		max-width="800px"
-		@update:modelValue="$emit('update:show', $event)"
 	>
 		<v-card>
 			<v-card-title class="d-flex align-center">
@@ -205,7 +205,7 @@ onMounted(() => {
 									preferences.get(vehicle.device_id)?.displayName ||
 									vehicle.display_name
 								"
-								@update:modelValue="
+								@update:model-value="
 									updateDisplayName(vehicle.device_id, $event)
 								"
 								hide-details

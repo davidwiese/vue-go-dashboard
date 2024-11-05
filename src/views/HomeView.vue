@@ -16,15 +16,9 @@ const vehicles = ref([]);
 
 // WebSocket setup
 const initWebSocket = () => {
-	console.log("Initializing WebSocket connection");
 	socket = new WebSocket(WS_URL);
 
-	socket.onopen = () => {
-		console.log("WebSocket connection established");
-	};
-
 	socket.onmessage = (event) => {
-		console.log("WebSocket message received");
 		const vehicleUpdates = JSON.parse(event.data);
 		vehicles.value = vehicleUpdates;
 	};
@@ -32,17 +26,12 @@ const initWebSocket = () => {
 	socket.onerror = (error) => {
 		console.error("WebSocket error:", error);
 	};
-
-	socket.onclose = () => {
-		console.log("WebSocket connection closed");
-	};
 };
 
 // Fetch vehicles from backend
 const fetchVehicles = async () => {
 	try {
 		const response = await axios.get(`${API_BASE_URL}/vehicles`);
-		console.log("Fetched vehicles:", response.data);
 		vehicles.value = response.data;
 	} catch (error) {
 		console.error("Error fetching vehicles:", error);

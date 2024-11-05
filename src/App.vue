@@ -1,11 +1,3 @@
-<script setup>
-import { onMounted } from "vue";
-
-onMounted(() => {
-	console.log("App component mounted");
-});
-</script>
-
 <template>
 	<v-app>
 		<v-app-bar app>
