@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, onMounted, watch } from "vue";
+import { ref, reactive, onMounted, watch } from "vue";
 import axios from "axios";
 import { getClientId } from "@/utils/clientId";
 
@@ -22,13 +22,6 @@ interface Preference {
 	displayName: string;
 }
 
-interface SavedPreference {
-	device_id: string;
-	display_name: string;
-	is_hidden: boolean;
-	sort_order: number;
-}
-
 const props = defineProps({
 	vehicles: {
 		type: Array as () => Vehicle[],
@@ -46,46 +39,42 @@ const emit = defineEmits<{
 }>();
 
 const API_BASE_URL = "http://localhost:5000";
-const preferences = ref<Map<string, Preference>>(new Map());
+const preferences = reactive<Record<string, Preference>>({});
 const loading = ref(false);
 const error = ref("");
 
-// Load preferences for all vehicles
+// Load preferences
 const loadPreferences = async () => {
 	try {
 		loading.value = true;
 		error.value = "";
 		const clientId = getClientId();
-		const response = await axios.get<SavedPreference[]>(
+		const response = await axios.get(
 			`${API_BASE_URL}/preferences?client_id=${clientId}`
 		);
 
-		// Initialize preferences map
-		const prefsMap = new Map<string, Preference>();
-
-		// Initialize preferences for all vehicles with defaults
+		// Initialize preferences
+		const prefsObj: Record<string, Preference> = {};
 		props.vehicles.forEach((vehicle) => {
-			prefsMap.set(vehicle.device_id, {
+			prefsObj[vehicle.device_id] = {
 				isHidden: false,
 				sortOrder: 0,
 				displayName: vehicle.display_name,
-			});
+			};
 		});
 
-		// Override with any saved preferences from the database
-		response.data.forEach((pref) => {
-			prefsMap.set(pref.device_id, {
+		// Override with saved preferences
+		response.data.forEach((pref: any) => {
+			prefsObj[pref.device_id] = {
 				isHidden: pref.is_hidden,
 				sortOrder: pref.sort_order,
-				displayName:
-					pref.display_name ||
-					props.vehicles.find((v) => v.device_id === pref.device_id)
-						?.display_name ||
-					"",
-			});
+				displayName: pref.display_name || prefsObj[pref.device_id].displayName,
+			};
 		});
 
-		preferences.value = prefsMap;
+		// Update reactive preferences
+		Object.keys(preferences).forEach((key) => delete preferences[key]);
+		Object.assign(preferences, prefsObj);
 	} catch (err) {
 		console.error("Error loading preferences:", err);
 		error.value = "Failed to load preferences";
@@ -94,10 +83,10 @@ const loadPreferences = async () => {
 	}
 };
 
-// Save preferences for a vehicle
+// Save preferences for a vehicle and emit event
 const savePreference = async (deviceId: string) => {
 	try {
-		const pref = preferences.value.get(deviceId);
+		const pref = preferences[deviceId];
 		if (!pref) return;
 
 		const clientId = getClientId();
@@ -109,27 +98,16 @@ const savePreference = async (deviceId: string) => {
 			sort_order: pref.sortOrder,
 		};
 
-		// Try to create first (which will update if exists)
-		try {
-			await axios.post(`${API_BASE_URL}/preferences`, payload);
-		} catch (err) {
-			console.error("Error saving preference:", err);
-			error.value = "Failed to save preference";
-			// Revert the local change since save failed
-			const currentPref = preferences.value.get(deviceId);
-			if (currentPref) {
-				currentPref.isHidden = !currentPref.isHidden;
-			}
-			return;
-		}
+		// Save or update the preference on the server
+		await axios.post(`${API_BASE_URL}/preferences`, payload);
 
 		await loadPreferences(); // Reload preferences after successful save
 		emit("preferences-updated");
 	} catch (err) {
-		console.error("Error in savePreference:", err);
+		console.error("Error saving preference:", err);
 		error.value = "Failed to save preference";
 		// Revert the local change since save failed
-		const pref = preferences.value.get(deviceId);
+		const pref = preferences[deviceId];
 		if (pref) {
 			pref.isHidden = !pref.isHidden;
 		}
@@ -138,16 +116,10 @@ const savePreference = async (deviceId: string) => {
 
 // Toggle vehicle visibility
 const toggleVisibility = async (deviceId: string) => {
-	const pref = preferences.value.get(deviceId);
+	const pref = preferences[deviceId];
 	if (pref) {
-		const newIsHidden = !pref.isHidden;
-		pref.isHidden = newIsHidden; // Update optimistically
-		try {
-			await savePreference(deviceId);
-		} catch (err) {
-			// savePreference already handles error case and reverts the change
-			console.error("Error toggling visibility:", err);
-		}
+		pref.isHidden = !pref.isHidden; // Update optimistically
+		await savePreference(deviceId);
 	}
 };
 
@@ -155,7 +127,7 @@ const toggleAllVisibility = async (show: boolean) => {
 	try {
 		loading.value = true;
 		for (const vehicle of props.vehicles) {
-			const pref = preferences.value.get(vehicle.device_id);
+			const pref = preferences[vehicle.device_id];
 			if (pref) {
 				pref.isHidden = !show;
 				await savePreference(vehicle.device_id);
@@ -174,21 +146,20 @@ const sortAlphabetically = async () => {
 	try {
 		loading.value = true;
 		const vehicles = [...props.vehicles].sort((a, b) => {
-			const aName =
-				preferences.value.get(a.device_id)?.displayName || a.display_name;
-			const bName =
-				preferences.value.get(b.device_id)?.displayName || b.display_name;
+			const aName = preferences[a.device_id]?.displayName || a.display_name;
+			const bName = preferences[b.device_id]?.displayName || b.display_name;
 			return aName.localeCompare(bName);
 		});
 
 		// Update sort orders
-		vehicles.forEach((vehicle, idx) => {
-			const pref = preferences.value.get(vehicle.device_id);
+		for (let idx = 0; idx < vehicles.length; idx++) {
+			const vehicle = vehicles[idx];
+			const pref = preferences[vehicle.device_id];
 			if (pref) {
 				pref.sortOrder = idx;
-				savePreference(vehicle.device_id);
+				await savePreference(vehicle.device_id);
 			}
-		});
+		}
 
 		emit("preferences-updated");
 	} catch (err) {
@@ -203,7 +174,7 @@ const hideInactiveVehicles = async () => {
 	try {
 		loading.value = true;
 		for (const vehicle of props.vehicles) {
-			const pref = preferences.value.get(vehicle.device_id);
+			const pref = preferences[vehicle.device_id];
 			if (pref && !vehicle.online) {
 				pref.isHidden = true;
 				await savePreference(vehicle.device_id);
@@ -220,7 +191,7 @@ const hideInactiveVehicles = async () => {
 
 // Update display name
 const updateDisplayName = async (deviceId: string, event: string) => {
-	const pref = preferences.value.get(deviceId);
+	const pref = preferences[deviceId];
 	if (pref) {
 		pref.displayName = event;
 		await savePreference(deviceId);
@@ -252,13 +223,14 @@ const onDrop = async (targetDeviceId: string) => {
 	vehicles.splice(targetIdx, 0, draggedVehicle);
 
 	// Update sort orders
-	vehicles.forEach((vehicle, idx) => {
-		const pref = preferences.value.get(vehicle.device_id);
+	for (let idx = 0; idx < vehicles.length; idx++) {
+		const vehicle = vehicles[idx];
+		const pref = preferences[vehicle.device_id];
 		if (pref) {
 			pref.sortOrder = idx;
-			savePreference(vehicle.device_id);
+			await savePreference(vehicle.device_id);
 		}
-	});
+	}
 
 	draggedItem.value = null;
 	emit("preferences-updated");
@@ -373,7 +345,7 @@ onMounted(() => {
 						<v-list-item-title>
 							<v-text-field
 								:model-value="
-									preferences.get(vehicle.device_id)?.displayName ||
+									preferences[vehicle.device_id]?.displayName ||
 									vehicle.display_name
 								"
 								@update:model-value="
@@ -388,14 +360,12 @@ onMounted(() => {
 						<template v-slot:append>
 							<v-btn
 								:icon="
-									preferences.get(vehicle.device_id)?.isHidden
+									preferences[vehicle.device_id]?.isHidden
 										? 'mdi-eye-off'
 										: 'mdi-eye'
 								"
 								:color="
-									preferences.get(vehicle.device_id)?.isHidden
-										? 'grey'
-										: 'success'
+									preferences[vehicle.device_id]?.isHidden ? 'grey' : 'success'
 								"
 								density="comfortable"
 								variant="text"

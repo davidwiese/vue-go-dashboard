@@ -1,5 +1,5 @@
 <script setup>
-import { ref, onMounted, onBeforeUnmount } from "vue";
+import { reactive, ref, onMounted, onBeforeUnmount } from "vue";
 import axios from "axios";
 import MapView from "@/components/map/MapView.vue";
 import VehicleList from "@/components/vehicles/VehicleList.vue";
@@ -14,7 +14,7 @@ let socket = null;
 
 // State
 const vehicles = ref([]);
-const preferences = ref(new Map());
+const preferences = reactive({});
 
 // Load preferences
 const loadPreferences = async () => {
@@ -27,18 +27,15 @@ const loadPreferences = async () => {
 		);
 		console.log("Raw preference data from server:", response.data);
 
-		const prefsMap = new Map();
+		// Clear existing preferences
+		Object.keys(preferences).forEach((key) => delete preferences[key]);
+
+		// Build preferences object
 		response.data.forEach((pref) => {
-			console.log("Processing raw preference:", JSON.stringify(pref));
-			prefsMap.set(pref.device_id, pref);
-			console.log("Updated map entry:", prefsMap.get(pref.device_id));
+			preferences[pref.device_id] = pref;
 		});
 
-		console.log(
-			"Final preferences Map entries:",
-			Array.from(prefsMap.entries())
-		);
-		preferences.value = prefsMap;
+		console.log("Updated preferences:", preferences);
 	} catch (error) {
 		console.error("Error loading preferences:", error);
 	}

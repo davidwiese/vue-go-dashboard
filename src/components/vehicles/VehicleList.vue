@@ -1,8 +1,6 @@
 <script setup>
 import { ref, computed } from "vue";
 import VehiclePreferences from "./VehiclePreferences.vue";
-import axios from "axios";
-import { getClientId } from "@/utils/clientId";
 
 const props = defineProps({
 	vehicles: {
@@ -10,50 +8,28 @@ const props = defineProps({
 		required: true,
 	},
 	preferences: {
-		type: Map,
+		type: Object,
 		required: true,
 	},
 });
 
+const emit = defineEmits(["preferences-updated"]);
 const showPreferences = ref(false);
-const preferences = ref(new Map());
-
-// Load preferences
-const loadPreferences = async () => {
-	try {
-		const clientId = getClientId();
-		const response = await axios.get(
-			`http://localhost:5000/preferences?client_id=${clientId}`
-		);
-		const prefsMap = new Map();
-		response.data.forEach((pref) => {
-			prefsMap.set(pref.device_id, {
-				isHidden: pref.is_hidden,
-				sortOrder: pref.sort_order,
-				displayName: pref.display_name,
-			});
-		});
-		preferences.value = prefsMap;
-	} catch (err) {
-		console.error("Error loading preferences:", err);
-	}
-};
 
 // Apply preferences to vehicles
 const displayedVehicles = computed(() => {
 	return [...props.vehicles]
-		.filter((vehicle) => !preferences.value.get(vehicle.device_id)?.isHidden)
+		.filter((vehicle) => !props.preferences?.[vehicle.device_id]?.isHidden)
 		.sort((a, b) => {
-			const aOrder = preferences.value.get(a.device_id)?.sortOrder || 0;
-			const bOrder = preferences.value.get(b.device_id)?.sortOrder || 0;
+			const aOrder = props.preferences?.[a.device_id]?.sortOrder || 0;
+			const bOrder = props.preferences?.[b.device_id]?.sortOrder || 0;
 			return aOrder - bOrder;
 		});
 });
 
 const getDisplayName = (vehicle) => {
 	return (
-		preferences.value.get(vehicle.device_id)?.displayName ||
-		vehicle.display_name
+		props.preferences?.[vehicle.device_id]?.displayName || vehicle.display_name
 	);
 };
 
@@ -86,8 +62,10 @@ const getVehicleLocation = (vehicle) => {
 	return `${lat.toFixed(4)}, ${lng.toFixed(4)}`;
 };
 
-// Load preferences when component mounts
-loadPreferences();
+// Handle preference updates from VehiclePreferences
+const handlePreferencesUpdated = () => {
+	emit("preferences-updated");
+};
 </script>
 
 <template>
@@ -170,7 +148,7 @@ loadPreferences();
 		<VehiclePreferences
 			v-model:show="showPreferences"
 			:vehicles="vehicles"
-			@preferences-updated="loadPreferences"
+			@preferences-updated="handlePreferencesUpdated"
 		/>
 	</v-card>
 </template>
