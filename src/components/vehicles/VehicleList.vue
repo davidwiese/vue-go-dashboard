@@ -9,6 +9,10 @@ const props = defineProps({
 		type: Array,
 		required: true,
 	},
+	preferences: {
+		type: Map,
+		required: true,
+	},
 });
 
 const showPreferences = ref(false);
