@@ -39,9 +39,10 @@ export const savePreferencesBatch = async (
 	preferences: PreferencePayload[]
 ) => {
 	try {
+		console.log("Sending batch update:", preferences); // Debug log
 		const response = await axios.post(
 			`${API_BASE_URL}/preferences/batch`,
-			preferences
+			preferences // Send the array directly
 		);
 		return response.data;
 	} catch (error) {
