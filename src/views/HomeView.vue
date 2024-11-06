@@ -56,9 +56,9 @@ const loadPreferences = async () => {
 };
 
 // Handle preference updates
-const handlePreferencesUpdated = () => {
+const handlePreferencesUpdated = async () => {
 	console.log("Preferences update event received");
-	loadPreferences();
+	await loadPreferences();
 };
 
 // WebSocket setup

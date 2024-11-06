@@ -2,6 +2,10 @@
 import { ref, reactive, onMounted, watch } from "vue";
 import axios from "axios";
 import { getClientId } from "@/utils/clientId";
+import {
+	savePreference as apiSavePreference,
+	savePreferencesBatch,
+} from "@/api/apiService";
 
 // Interface definitions
 interface Vehicle {
@@ -98,10 +102,7 @@ const savePreference = async (deviceId: string) => {
 			sort_order: pref.sortOrder,
 		};
 
-		// Save or update the preference on the server
-		await axios.post(`${API_BASE_URL}/preferences`, payload);
-
-		await loadPreferences(); // Reload preferences after successful save
+		await apiSavePreference(payload); // Use the renamed import
 		emit("preferences-updated");
 	} catch (err) {
 		console.error("Error saving preference:", err);
@@ -123,16 +124,28 @@ const toggleVisibility = async (deviceId: string) => {
 	}
 };
 
+// Update toggleAllVisibility function
 const toggleAllVisibility = async (show: boolean) => {
 	try {
 		loading.value = true;
-		for (const vehicle of props.vehicles) {
+		const clientId = getClientId();
+
+		// Prepare batch update
+		const updates = props.vehicles.map((vehicle) => {
 			const pref = preferences[vehicle.device_id];
-			if (pref) {
-				pref.isHidden = !show;
-				await savePreference(vehicle.device_id);
-			}
-		}
+			return {
+				device_id: vehicle.device_id,
+				client_id: clientId,
+				display_name: pref?.displayName || vehicle.display_name,
+				is_hidden: !show,
+				sort_order: pref?.sortOrder || 0,
+			};
+		});
+
+		// Send batch update
+		await savePreferencesBatch(updates);
+
+		// Emit update event
 		emit("preferences-updated");
 	} catch (err) {
 		console.error("Error toggling visibility:", err);
@@ -145,22 +158,31 @@ const toggleAllVisibility = async (show: boolean) => {
 const sortAlphabetically = async () => {
 	try {
 		loading.value = true;
-		const vehicles = [...props.vehicles].sort((a, b) => {
+		const clientId = getClientId();
+
+		// Sort vehicles
+		const sortedVehicles = [...props.vehicles].sort((a, b) => {
 			const aName = preferences[a.device_id]?.displayName || a.display_name;
 			const bName = preferences[b.device_id]?.displayName || b.display_name;
 			return aName.localeCompare(bName);
 		});
 
-		// Update sort orders
-		for (let idx = 0; idx < vehicles.length; idx++) {
-			const vehicle = vehicles[idx];
+		// Prepare batch update with new sort orders
+		const updates = sortedVehicles.map((vehicle, index) => {
 			const pref = preferences[vehicle.device_id];
-			if (pref) {
-				pref.sortOrder = idx;
-				await savePreference(vehicle.device_id);
-			}
-		}
+			return {
+				device_id: vehicle.device_id,
+				client_id: clientId,
+				display_name: pref?.displayName || vehicle.display_name,
+				is_hidden: pref?.isHidden || false,
+				sort_order: index,
+			};
+		});
 
+		// Send batch update
+		await savePreferencesBatch(updates);
+
+		// Emit update event
 		emit("preferences-updated");
 	} catch (err) {
 		console.error("Error sorting vehicles:", err);
@@ -173,13 +195,26 @@ const sortAlphabetically = async () => {
 const hideInactiveVehicles = async () => {
 	try {
 		loading.value = true;
-		for (const vehicle of props.vehicles) {
-			const pref = preferences[vehicle.device_id];
-			if (pref && !vehicle.online) {
-				pref.isHidden = true;
-				await savePreference(vehicle.device_id);
-			}
+		const clientId = getClientId();
+
+		// Prepare batch update for inactive vehicles
+		const updates = props.vehicles
+			.filter((vehicle) => !vehicle.online)
+			.map((vehicle) => {
+				const pref = preferences[vehicle.device_id];
+				return {
+					device_id: vehicle.device_id,
+					client_id: clientId,
+					display_name: pref?.displayName || vehicle.display_name,
+					is_hidden: true,
+					sort_order: pref?.sortOrder || 0,
+				};
+			});
+
+		if (updates.length > 0) {
+			await savePreferencesBatch(updates);
 		}
+
 		emit("preferences-updated");
 	} catch (err) {
 		console.error("Error hiding inactive vehicles:", err);
