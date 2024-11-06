@@ -30,9 +30,23 @@ const loadPreferences = async () => {
 		// Clear existing preferences
 		Object.keys(preferences).forEach((key) => delete preferences[key]);
 
-		// Build preferences object
+		// Initialize default preferences for all vehicles first
+		vehicles.value.forEach((vehicle) => {
+			preferences[vehicle.device_id] = {
+				isHidden: false,
+				sortOrder: 0,
+				displayName: vehicle.display_name,
+			};
+		});
+
+		// Override with server preferences, mapping snake_case to camelCase
 		response.data.forEach((pref) => {
-			preferences[pref.device_id] = pref;
+			preferences[pref.device_id] = {
+				isHidden: pref.is_hidden, // Map from snake_case
+				sortOrder: pref.sort_order, // Map from snake_case
+				displayName:
+					pref.display_name || preferences[pref.device_id]?.displayName,
+			};
 		});
 
 		console.log("Updated preferences:", preferences);
@@ -49,7 +63,8 @@ const handlePreferencesUpdated = () => {
 
 // WebSocket setup
 const initWebSocket = () => {
-	socket = new WebSocket(WS_URL);
+	const clientId = getClientId();
+	socket = new WebSocket(`${WS_URL}?client_id=${clientId}`);
 
 	socket.onmessage = (event) => {
 		const vehicleUpdates = JSON.parse(event.data);
@@ -58,6 +73,21 @@ const initWebSocket = () => {
 
 	socket.onerror = (error) => {
 		console.error("WebSocket error:", error);
+	};
+
+	socket.onclose = () => {
+		console.log("WebSocket connection closed");
+		// Attempt to reconnect after delay
+		setTimeout(() => {
+			if (socket?.readyState === WebSocket.CLOSED) {
+				console.log("Attempting to reconnect WebSocket...");
+				initWebSocket();
+			}
+		}, 5000);
+	};
+
+	socket.onopen = () => {
+		console.log("WebSocket connected");
 	};
 };
 
@@ -72,10 +102,10 @@ const fetchVehicles = async () => {
 };
 
 // Lifecycle hooks
-onMounted(() => {
-	fetchVehicles();
+onMounted(async () => {
+	await fetchVehicles();
 	initWebSocket();
-	loadPreferences();
+	await loadPreferences();
 });
 
 onBeforeUnmount(() => {

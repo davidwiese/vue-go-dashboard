@@ -25,20 +25,10 @@ const map = ref(null);
 const google = ref(null);
 const markers = ref({});
 
-// Computed property for visible vehicles
-const visibleVehicles = computed(() => {
-	console.log("Computing visibleVehicles...");
-	const filtered = props.vehicles.filter((vehicle) => {
-		const pref = props.preferences[vehicle.device_id];
-		const shouldShow = pref ? !pref.is_hidden : true;
-		return shouldShow;
-	});
-	console.log("Filtered vehicles count:", filtered.length);
-	return filtered;
-});
-
 // Helper function to get marker icon
 const getMarkerIcon = (vehicle) => {
+	if (!google.value) return null;
+
 	const backgroundColor = vehicle.online
 		? vehicle.latest_device_point?.speed > 0
 			? "#4caf50"
@@ -55,110 +45,118 @@ const getMarkerIcon = (vehicle) => {
 	};
 };
 
+// Function to create info window content
+const createInfoWindowContent = (vehicle) => `
+  <div class="info-window" style="padding: 8px;">
+    <h3 style="margin: 0 0 8px 0;">${vehicle.display_name}</h3>
+    <p style="margin: 4px 0;">Status: ${
+			vehicle.online ? "Online" : "Offline"
+		}</p>
+    <p style="margin: 4px 0;">Speed: ${
+			vehicle.latest_device_point?.speed || 0
+		} km/h</p>
+    <p style="margin: 4px 0; font-size: 0.9em;">
+      Last Updated: ${new Date(
+				vehicle.latest_device_point?.dt_tracker
+			).toLocaleString()}
+    </p>
+  </div>
+`;
+
 // Function to create or update a marker
 const createOrUpdateMarker = (vehicle) => {
 	if (!google.value || !map.value) return;
 
-	let marker = markers.value[vehicle.device_id];
+	try {
+		const isHidden = props.preferences[vehicle.device_id]?.isHidden;
+		let marker = markers.value[vehicle.device_id];
 
-	if (marker) {
-		// Update marker position and icon
-		marker.setPosition({
-			lat: vehicle.latest_device_point.lat,
-			lng: vehicle.latest_device_point.lng,
-		});
-		marker.setIcon(getMarkerIcon(vehicle));
-	} else {
-		// Create new marker
-		marker = new google.value.maps.Marker({
-			map: map.value,
-			position: {
+		if (marker) {
+			// Update existing marker
+			marker.setPosition({
 				lat: vehicle.latest_device_point.lat,
 				lng: vehicle.latest_device_point.lng,
-			},
-			icon: getMarkerIcon(vehicle),
-			title: vehicle.display_name,
-		});
+			});
+			marker.setIcon(getMarkerIcon(vehicle));
+			marker.setVisible(!isHidden);
+		} else {
+			// Create new marker
+			marker = new google.value.maps.Marker({
+				position: {
+					lat: vehicle.latest_device_point.lat,
+					lng: vehicle.latest_device_point.lng,
+				},
+				icon: getMarkerIcon(vehicle),
+				title: vehicle.display_name,
+				map: map.value,
+				visible: !isHidden,
+			});
 
-		// Add an info window if needed
-		const infoWindow = new google.value.maps.InfoWindow({
-			content: `
-        <div class="info-window" style="padding: 8px;">
-          <h3 style="margin: 0 0 8px 0;">${vehicle.display_name}</h3>
-          <p style="margin: 4px 0;">Status: ${
-						vehicle.online ? "Online" : "Offline"
-					}</p>
-          <p style="margin: 4px 0;">Speed: ${
-						vehicle.latest_device_point?.speed || 0
-					} km/h</p>
-          <p style="margin: 4px 0; font-size: 0.9em;">Last Updated: ${new Date(
-						vehicle.latest_device_point?.dt_tracker
-					).toLocaleString()}</p>
-        </div>
-      `,
-		});
+			const infoWindow = new google.value.maps.InfoWindow({
+				content: createInfoWindowContent(vehicle),
+			});
 
-		marker.addListener("click", () => {
-			infoWindow.open(map.value, marker);
-		});
+			marker.addListener("click", () => {
+				infoWindow.open(map.value, marker);
+			});
 
-		markers.value[vehicle.device_id] = marker;
+			markers.value[vehicle.device_id] = marker;
+		}
+	} catch (error) {
+		console.error(
+			`Error handling marker for vehicle ${vehicle.device_id}:`,
+			error
+		);
 	}
 };
 
-// Function to remove a marker
+// Function to remove a marker with proper cleanup
 const removeMarker = (deviceId) => {
 	const marker = markers.value[deviceId];
 	if (marker) {
-		marker.setMap(null);
-		delete markers.value[deviceId];
+		try {
+			marker.setVisible(false);
+			google.value?.maps.event.clearInstanceListeners(marker);
+			delete markers.value[deviceId];
+		} catch (error) {
+			console.error(`Error removing marker ${deviceId}:`, error);
+		}
 	}
 };
 
-// Watch for changes in visibleVehicles
-watch(
-	visibleVehicles,
-	(newVehicles, oldVehicles) => {
-		if (!google.value || !map.value) return;
+// Unified function to update markers
+const updateMarkers = () => {
+	if (!google.value || !map.value) return;
 
-		// Get arrays of device IDs
-		const newIds = newVehicles.map((v) => v.device_id);
-		const oldIds = oldVehicles ? oldVehicles.map((v) => v.device_id) : [];
+	try {
+		const currentDeviceIds = new Set(props.vehicles.map((v) => v.device_id));
 
-		// Find vehicles to add
-		const addedVehicles = newVehicles.filter(
-			(v) => !markers.value[v.device_id]
-		);
-		// Find vehicles to remove
-		const removedIds = oldIds.filter((id) => !newIds.includes(id));
-
-		// Add new markers
-		addedVehicles.forEach((vehicle) => {
-			createOrUpdateMarker(vehicle);
+		// Remove obsolete markers
+		Object.keys(markers.value).forEach((deviceId) => {
+			if (!currentDeviceIds.has(deviceId)) {
+				removeMarker(deviceId);
+			}
 		});
 
-		// Remove old markers
-		removedIds.forEach((id) => {
-			removeMarker(id);
-		});
-	},
-	{ immediate: true, deep: true }
-);
+		// Update or create markers for current vehicles
+		props.vehicles.forEach((vehicle) => {
+			const isHidden = props.preferences[vehicle.device_id]?.isHidden;
 
-// Watch for updates in vehicle positions
-watch(
-	() => props.vehicles,
-	(newVehicles) => {
-		if (!google.value || !map.value) return;
-
-		newVehicles.forEach((vehicle) => {
-			if (markers.value[vehicle.device_id]) {
+			if (isHidden) {
+				removeMarker(vehicle.device_id);
+			} else {
 				createOrUpdateMarker(vehicle);
 			}
 		});
-	},
-	{ deep: true }
-);
+	} catch (error) {
+		console.error("Error updating markers:", error);
+	}
+};
+
+// Consolidated watcher for vehicles and preferences
+watch([() => props.vehicles, () => props.preferences], updateMarkers, {
+	deep: true,
+});
 </script>
 
 <template>
@@ -166,7 +164,6 @@ watch(
 		<v-card-text>
 			<GoogleMapLoader :map-config="mapConfig" :api-key="API_KEY">
 				<template #default="{ google: g, map: m }">
-					<!-- Assign google and map references -->
 					<div v-if="(google = g) && (map = m)"></div>
 				</template>
 			</GoogleMapLoader>
