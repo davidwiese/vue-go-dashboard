@@ -25,7 +25,48 @@ interface Props {
 	preferences: Record<string, Preference>;
 }
 
-const props = defineProps<Props>();
+const props = defineProps<{
+	vehicles: Vehicle[];
+	preferences: Record<string, Preference>;
+	selectedVehicleId?: string;
+}>();
+
+// Function to handle vehicle selection
+const handleVehicleSelection = (deviceId: string) => {
+	if (!google.value || !map.value) return;
+
+	const marker = markers.value[deviceId];
+	if (marker) {
+		// Center map on vehicle
+		map.value.panTo({
+			lat: marker.getPosition().lat(),
+			lng: marker.getPosition().lng(),
+		});
+		map.value.setZoom(15); // Zoom in closer to the vehicle
+
+		// Find all info windows and close them
+		Object.values(markers.value).forEach((m) => {
+			if (m.infoWindow) {
+				m.infoWindow.close();
+			}
+		});
+
+		// Open this vehicle's info window
+		if (marker.infoWindow) {
+			marker.infoWindow.open(map.value, marker);
+		}
+	}
+};
+
+// Watch for selectedVehicleId changes
+watch(
+	() => props.selectedVehicleId,
+	(newId) => {
+		if (newId) {
+			handleVehicleSelection(newId);
+		}
+	}
+);
 
 const mapConfig = computed(() => ({
 	center: { lat: 36.7783, lng: -119.4179 },
@@ -93,6 +134,10 @@ const createOrUpdateMarker = (vehicle) => {
 			});
 			marker.setIcon(getMarkerIcon(vehicle));
 			marker.setVisible(!isHidden);
+			// Update info window content
+			if (marker.infoWindow) {
+				marker.infoWindow.setContent(createInfoWindowContent(vehicle));
+			}
 		} else {
 			// Create new marker
 			marker = new google.value.maps.Marker({
@@ -110,7 +155,16 @@ const createOrUpdateMarker = (vehicle) => {
 				content: createInfoWindowContent(vehicle),
 			});
 
+			// Store infoWindow with marker
+			marker.infoWindow = infoWindow;
+
 			marker.addListener("click", () => {
+				// Close all other info windows
+				Object.values(markers.value).forEach((m) => {
+					if (m.infoWindow && m !== marker) {
+						m.infoWindow.close();
+					}
+				});
 				infoWindow.open(map.value, marker);
 			});
 

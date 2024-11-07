@@ -35,6 +35,7 @@ let socket: WebSocket | null = null;
 // State
 const vehicles = ref<Vehicle[]>([]);
 const preferences = reactive<Record<string, Preference>>({});
+const selectedVehicleId = ref<string | undefined>(undefined);
 
 // Load preferences from server
 const loadPreferences = async () => {
@@ -119,6 +120,10 @@ const fetchVehicles = async () => {
 	}
 };
 
+const handleVehicleSelected = (deviceId: string) => {
+	selectedVehicleId.value = deviceId;
+};
+
 // Lifecycle hooks
 onMounted(async () => {
 	await fetchVehicles();
@@ -148,6 +153,7 @@ onBeforeUnmount(() => {
 					<MapView
 						:vehicles="vehicles"
 						:preferences="preferences"
+						:selected-vehicle-id="selectedVehicleId"
 						class="map-container"
 					/>
 				</v-col>
@@ -158,6 +164,7 @@ onBeforeUnmount(() => {
 						:vehicles="vehicles"
 						:preferences="preferences"
 						@preferences-updated="handlePreferencesUpdated"
+						@vehicle-selected="handleVehicleSelected"
 						class="vehicle-list-container"
 					/>
 				</v-col>

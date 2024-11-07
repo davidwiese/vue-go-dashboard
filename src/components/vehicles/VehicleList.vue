@@ -28,7 +28,7 @@ interface Props {
 }
 
 const props = defineProps<Props>();
-const emit = defineEmits(["preferences-updated"]);
+const emit = defineEmits(["preferences-updated", "vehicle-selected"]);
 const showPreferences = ref(false);
 
 // Apply preferences to vehicles
@@ -79,6 +79,10 @@ const getVehicleLocation = (vehicle: Vehicle) => {
 const handlePreferencesUpdated = () => {
 	emit("preferences-updated");
 };
+
+const handleVehicleClick = (vehicle: Vehicle) => {
+	emit("vehicle-selected", vehicle.device_id);
+};
 </script>
 
 <template>
@@ -120,12 +124,20 @@ const handlePreferencesUpdated = () => {
 					:class="{ offline: !vehicle.online }"
 				>
 					<template v-slot:prepend>
-						<v-icon :color="getStatusColor(vehicle)">
+						<v-icon
+							:color="getStatusColor(vehicle)"
+							@click="handleVehicleClick(vehicle)"
+							style="cursor: pointer"
+						>
 							{{ getStatusIcon(vehicle) }}
 						</v-icon>
 					</template>
 
-					<v-list-item-title class="d-flex align-center">
+					<v-list-item-title
+						class="d-flex align-center"
+						@click="handleVehicleClick(vehicle)"
+						style="cursor: pointer"
+					>
 						<span class="font-weight-medium">{{
 							getDisplayName(vehicle)
 						}}</span>
