@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { ref, computed } from "vue";
 import VehiclePreferences from "./VehiclePreferences.vue";
+import { format } from "date-fns";
 
 // Interfaces
 interface Vehicle {
@@ -21,6 +22,13 @@ interface Preference {
 	displayName: string;
 }
 
+interface ReportTimeframe {
+	label: string;
+	value: string;
+	from: Date;
+	to: Date;
+}
+
 // Props
 interface Props {
 	vehicles: Vehicle[];
@@ -30,6 +38,96 @@ interface Props {
 const props = defineProps<Props>();
 const emit = defineEmits(["preferences-updated", "vehicle-selected"]);
 const showPreferences = ref(false);
+const showReportDialog = ref(false);
+const selectedVehicle = ref<Vehicle | null>(null);
+const selectedTimeframe = ref<string>("24h");
+const isGeneratingReport = ref(false);
+
+const timeframes = computed<ReportTimeframe[]>(() => {
+	const now = new Date();
+	return [
+		{
+			label: "Last 24 Hours",
+			value: "24h",
+			from: new Date(now.getTime() - 24 * 60 * 60 * 1000),
+			to: now,
+		},
+		{
+			label: "Last 7 Days",
+			value: "7d",
+			from: new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000),
+			to: now,
+		},
+		{
+			label: "Last 30 Days",
+			value: "30d",
+			from: new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000),
+			to: now,
+		},
+	];
+});
+
+const openReportDialog = (vehicle: Vehicle) => {
+	selectedVehicle.value = vehicle;
+	showReportDialog.value = true;
+};
+
+const generateReport = async () => {
+	if (!selectedVehicle.value) return;
+
+	try {
+		isGeneratingReport.value = true;
+
+		const timeframe = timeframes.value.find(
+			(t) => t.value === selectedTimeframe.value
+		);
+		if (!timeframe) return;
+
+		const response = await fetch("/api/report/generate", {
+			method: "POST",
+			headers: {
+				"Content-Type": "application/json",
+			},
+			body: JSON.stringify({
+				report_spec: {
+					user_report_name: `${selectedVehicle.value.display_name} Activity Report`,
+					report_type: "drives_and_stops",
+					device_id_list: [selectedVehicle.value.device_id],
+					datetime_from: format(timeframe.from, "yyyy-MM-dd'T'HH:mm:ss'Z'"),
+					datetime_to: format(timeframe.to, "yyyy-MM-dd'T'HH:mm:ss'Z'"),
+					report_output_field_list: [
+						"device_name",
+						"drive_start_time",
+						"drive_end_time",
+						"drive_duration",
+						"drive_distance",
+						"max_speed",
+						"avg_speed",
+						"start_location",
+						"end_location",
+					],
+					report_options: {
+						date_time_format: "standard",
+						display_decimal_places: 1,
+						duration_format: "standard",
+						use_pdf_landscape: true,
+					},
+				},
+			}),
+		});
+
+		if (!response.ok) {
+			throw new Error("Failed to generate report");
+		}
+
+		const data = await response.json();
+		showReportDialog.value = false;
+	} catch (error) {
+		console.error("Error generating report:", error);
+	} finally {
+		isGeneratingReport.value = false;
+	}
+};
 
 // Apply preferences to vehicles
 const displayedVehicles = computed(() => {
@@ -166,9 +264,57 @@ const handleVehicleClick = (vehicle: Vehicle) => {
 							</div>
 						</div>
 					</v-list-item-subtitle>
+					<template v-slot:append>
+						<v-btn
+							icon
+							color="primary"
+							variant="text"
+							@click="openReportDialog(vehicle)"
+							title="Generate Report"
+						>
+							<v-icon>mdi-file-chart</v-icon>
+						</v-btn>
+					</template>
 				</v-list-item>
 			</v-list>
 		</v-card-text>
+
+		<!-- Report Dialog -->
+		<v-dialog v-model="showReportDialog" max-width="500px">
+			<v-card>
+				<v-card-title class="d-flex align-center">
+					<v-icon class="mr-2">mdi-file-chart</v-icon>
+					Generate Vehicle Report
+				</v-card-title>
+
+				<v-card-text>
+					<p class="mb-4">
+						Generate a report for {{ selectedVehicle?.display_name }}
+					</p>
+
+					<v-radio-group v-model="selectedTimeframe" class="mb-4">
+						<v-radio
+							v-for="timeframe in timeframes"
+							:key="timeframe.value"
+							:label="timeframe.label"
+							:value="timeframe.value"
+						></v-radio>
+					</v-radio-group>
+				</v-card-text>
+
+				<v-card-actions>
+					<v-spacer></v-spacer>
+					<v-btn
+						color="primary"
+						:loading="isGeneratingReport"
+						@click="generateReport"
+					>
+						Generate Report
+					</v-btn>
+					<v-btn text @click="showReportDialog = false">Cancel</v-btn>
+				</v-card-actions>
+			</v-card>
+		</v-dialog>
 
 		<VehiclePreferences
 			v-model:show="showPreferences"
