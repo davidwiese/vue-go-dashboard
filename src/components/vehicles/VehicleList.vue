@@ -72,6 +72,50 @@ const openReportDialog = (vehicle: Vehicle) => {
 	showReportDialog.value = true;
 };
 
+const pollReportStatus = async (reportId: string) => {
+	try {
+		const response = await fetch(`/api/report/status/${reportId}`);
+		if (!response.ok) {
+			throw new Error("Failed to get report status");
+		}
+
+		const status = await response.json();
+		return status;
+	} catch (error) {
+		console.error("Error polling report status:", error);
+		throw error;
+	}
+};
+
+const downloadReport = async (reportId: string) => {
+	try {
+		const response = await fetch(`/api/report/download/${reportId}`);
+		if (!response.ok) {
+			throw new Error("Failed to download report");
+		}
+
+		// Get the blob from the response
+		const blob = await response.blob();
+
+		// Create a URL for the blob
+		const url = window.URL.createObjectURL(blob);
+
+		// Create a temporary link and click it to download
+		const a = document.createElement("a");
+		a.href = url;
+		a.download = `report_${reportId}.pdf`;
+		document.body.appendChild(a);
+		a.click();
+
+		// Clean up
+		window.URL.revokeObjectURL(url);
+		document.body.removeChild(a);
+	} catch (error) {
+		console.error("Error downloading report:", error);
+		throw error;
+	}
+};
+
 const generateReport = async () => {
 	if (!selectedVehicle.value) return;
 
@@ -83,6 +127,7 @@ const generateReport = async () => {
 		);
 		if (!timeframe) return;
 
+		// Update URL to match backend route
 		const response = await fetch("/api/report/generate", {
 			method: "POST",
 			headers: {
@@ -116,11 +161,19 @@ const generateReport = async () => {
 			}),
 		});
 
+		console.log("Report generation response:", response); // Add this for debugging
+
 		if (!response.ok) {
-			throw new Error("Failed to generate report");
+			const errorText = await response.text();
+			console.error("Error response:", errorText); // Add this for debugging
+			throw new Error(`Failed to generate report: ${errorText}`);
 		}
 
 		const data = await response.json();
+		console.log("Report data:", data); // Add this for debugging
+
+		const reportId = data.report_generated_id;
+
 		showReportDialog.value = false;
 	} catch (error) {
 		console.error("Error generating report:", error);
