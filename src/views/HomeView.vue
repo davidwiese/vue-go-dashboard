@@ -142,19 +142,58 @@ onBeforeUnmount(() => {
 				</v-col>
 			</v-row>
 
-			<v-row>
-				<v-col cols="8">
-					<MapView :vehicles="vehicles" :preferences="preferences" />
+			<v-row class="flex-column flex-md-row">
+				<!-- Map takes full width on mobile, 2/3 on larger screens -->
+				<v-col cols="12" md="8" order="2" order-md="1">
+					<MapView
+						:vehicles="vehicles"
+						:preferences="preferences"
+						class="map-container"
+					/>
 				</v-col>
 
-				<v-col cols="4">
+				<!-- Vehicle list takes full width on mobile, 1/3 on larger screens -->
+				<v-col cols="12" md="4" order="1" order-md="2">
 					<VehicleList
 						:vehicles="vehicles"
 						:preferences="preferences"
 						@preferences-updated="handlePreferencesUpdated"
+						class="vehicle-list-container"
 					/>
 				</v-col>
 			</v-row>
 		</v-container>
 	</div>
 </template>
+
+<style scoped>
+.home-view {
+	height: 100%;
+	overflow: hidden;
+}
+
+/* Adjust map height based on screen size */
+.map-container {
+	height: 50vh;
+}
+
+@media (min-width: 960px) {
+	.map-container {
+		height: calc(100vh - 180px);
+		position: sticky;
+		top: 64px;
+	}
+
+	.vehicle-list-container {
+		max-height: calc(100vh - 180px);
+		overflow-y: auto;
+	}
+}
+
+/* Add some breathing room on mobile */
+@media (max-width: 959px) {
+	.v-container {
+		padding-bottom: 76px;
+	}
+}
+</style>
