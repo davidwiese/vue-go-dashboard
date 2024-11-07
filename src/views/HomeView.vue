@@ -17,18 +17,6 @@ interface Vehicle {
 		lng: number;
 		dt_tracker: string;
 	};
-	drive_state: DriveState;
-}
-
-interface DriveState {
-	status: string; // "off", "idle", "driving"
-	status_id: string;
-	drive_status_distance: {
-		value: number;
-		unit: string; // e.g., "m", "km", "miles"
-		display: string;
-	};
-	begin_time: string; // ISO date string
 }
 
 interface Preference {
@@ -37,6 +25,7 @@ interface Preference {
 	displayName: string;
 	speed_unit: "mph" | "km/h";
 	distance_unit: "miles" | "kilometers";
+	temperature_unit: "F" | "C";
 }
 
 // Constants
@@ -49,7 +38,6 @@ let socket: WebSocket | null = null;
 // State
 const vehicles = ref<Vehicle[]>([]);
 const preferences = reactive<Record<string, Preference>>({});
-const preferencesLoaded = ref(false); // New loading flag
 
 // Load preferences from server
 const loadPreferences = async () => {
@@ -71,35 +59,26 @@ const loadPreferences = async () => {
 				displayName: vehicle.display_name,
 				speed_unit: "mph",
 				distance_unit: "miles",
+				temperature_unit: "F",
 			};
 		});
 
 		// Override with server preferences
 		prefs.forEach((pref: any) => {
-			if (preferences[pref.device_id]) {
-				preferences[pref.device_id] = {
-					isHidden:
-						pref.is_hidden !== undefined
-							? pref.is_hidden
-							: preferences[pref.device_id].isHidden,
-					sortOrder:
-						pref.sort_order !== undefined
-							? pref.sort_order
-							: preferences[pref.device_id].sortOrder,
-					displayName:
-						pref.display_name || preferences[pref.device_id].displayName,
-					speed_unit: pref.speed_unit || preferences[pref.device_id].speed_unit,
-					distance_unit:
-						pref.distance_unit || preferences[pref.device_id].distance_unit,
-				};
-			}
+			preferences[pref.device_id] = {
+				isHidden: pref.is_hidden,
+				sortOrder: pref.sort_order,
+				displayName:
+					pref.display_name || preferences[pref.device_id]?.displayName,
+				speed_unit: pref.speed_unit || "mph",
+				distance_unit: pref.distance_unit || "miles",
+				temperature_unit: pref.temperature_unit || "F",
+			};
 		});
 
 		console.log("Updated preferences:", preferences);
-		preferencesLoaded.value = true; // Mark preferences as loaded
 	} catch (error) {
 		console.error("Error loading preferences:", error);
-		preferencesLoaded.value = true; // Avoid indefinite loading
 	}
 };
 
@@ -178,19 +157,11 @@ onBeforeUnmount(() => {
 				</v-col>
 
 				<v-col cols="4">
-					<!-- Render VehicleList only after preferences are loaded -->
 					<VehicleList
-						v-if="preferencesLoaded"
 						:vehicles="vehicles"
 						:preferences="preferences"
 						@preferences-updated="handlePreferencesUpdated"
 					/>
-					<!-- Optionally, show a loader while preferences are loading -->
-					<v-skeleton-loader
-						v-else
-						type="list-item-three-line"
-						class="mt-4"
-					></v-skeleton-loader>
 				</v-col>
 			</v-row>
 		</v-container>

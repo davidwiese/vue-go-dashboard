@@ -24,6 +24,7 @@ interface Preference {
 	displayName: string;
 	speed_unit: "mph" | "km/h";
 	distance_unit: "miles" | "kilometers";
+	temperature_unit: "F" | "C";
 }
 
 interface PreferencePayload {
@@ -34,6 +35,7 @@ interface PreferencePayload {
 	sort_order: number;
 	speed_unit: "mph" | "km/h";
 	distance_unit: "miles" | "kilometers";
+	temperature_unit: "F" | "C";
 }
 
 interface Props {
@@ -99,6 +101,7 @@ const savePreference = async (deviceId: string) => {
 			sort_order: pref.sortOrder,
 			speed_unit: pref.speed_unit,
 			distance_unit: pref.distance_unit,
+			temperature_unit: pref.temperature_unit,
 		};
 
 		await apiSavePreference(payload);
@@ -221,6 +224,7 @@ const sortAlphabetically = async () => {
 				sort_order: pref?.sortOrder || 0,
 				speed_unit: pref?.speed_unit || "mph",
 				distance_unit: pref?.distance_unit || "miles",
+				temperature_unit: pref?.temperature_unit || "F",
 			};
 		});
 
@@ -468,6 +472,16 @@ const onDrop = async (targetDeviceId: string) => {
 									v-model="localPreferences[vehicle.device_id].distance_unit"
 									:items="['miles', 'kilometers']"
 									label="Distance Unit"
+									density="compact"
+									hide-details
+									@change="savePreference(vehicle.device_id)"
+								></v-select>
+
+								<!-- Temperature Unit -->
+								<v-select
+									v-model="localPreferences[vehicle.device_id].temperature_unit"
+									:items="['F', 'C']"
+									label="Temperature Unit"
 									density="compact"
 									hide-details
 									@change="savePreference(vehicle.device_id)"

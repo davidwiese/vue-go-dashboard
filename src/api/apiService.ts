@@ -10,6 +10,7 @@ interface PreferencePayload {
 	sort_order: number;
 	speed_unit: "mph" | "km/h";
 	distance_unit: "miles" | "kilometers";
+	temperature_unit: "F" | "C";
 }
 
 export const getPreferences = async (clientId: string) => {
@@ -26,10 +27,7 @@ export const getPreferences = async (clientId: string) => {
 
 export const savePreference = async (preference: PreferencePayload) => {
 	try {
-		const response = await axios.post(
-			`${API_BASE_URL}/preferences`,
-			preference
-		);
+		const response = await axios.post(`${API_BASE_URL}/preferences`, payload);
 		return response.data;
 	} catch (error) {
 		console.error("Error saving preference:", error);
@@ -37,15 +35,11 @@ export const savePreference = async (preference: PreferencePayload) => {
 	}
 };
 
-export const savePreferencesBatch = async (
-	preferences: PreferencePayload[]
-) => {
+export const savePreferencesBatch = async (payloadArray) => {
 	try {
-		console.log("Sending batch update:", preferences); // Debug log
-		const response = await axios.post(
-			`${API_BASE_URL}/preferences/batch`,
-			preferences // Send the array directly
-		);
+		const response = await axios.post(`${API_BASE_URL}/preferences/batch`, {
+			preferences: payloadArray,
+		});
 		return response.data;
 	} catch (error) {
 		console.error("Error saving preferences batch:", error);
