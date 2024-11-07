@@ -46,6 +46,16 @@ const error = ref("");
 // Create a local copy of preferences for cancellation support
 const localPreferences = reactive<Record<string, Preference>>({});
 
+// Computed property for sorted vehicles
+const sortedVehicles = computed(() => {
+	return [...props.vehicles].sort((a, b) => {
+		const aOrder = localPreferences[a.device_id]?.sortOrder || 0;
+		const bOrder = localPreferences[b.device_id]?.sortOrder || 0;
+		return aOrder - bOrder;
+	});
+});
+
+// Watch for changes in props.show
 watch(
 	() => props.show,
 	(isShown) => {
@@ -58,14 +68,24 @@ watch(
 				localPreferences,
 				JSON.parse(JSON.stringify(props.preferences))
 			);
-		} else {
-			// Discard local changes when dialog closes without saving
-			Object.keys(localPreferences).forEach(
-				(key) => delete localPreferences[key]
-			);
 		}
 	},
 	{ immediate: true }
+);
+
+// Watch for changes in props.preferences
+watch(
+	() => props.preferences,
+	(newPrefs) => {
+		if (props.show) {
+			// Update local preferences when global preferences change
+			Object.keys(localPreferences).forEach(
+				(key) => delete localPreferences[key]
+			);
+			Object.assign(localPreferences, JSON.parse(JSON.stringify(newPrefs)));
+		}
+	},
+	{ deep: true }
 );
 
 // Function to apply local changes to global preferences
@@ -271,44 +291,41 @@ const onDragOver = (e: DragEvent) => {
 const onDrop = async (targetDeviceId: string) => {
 	if (!draggedItem.value || draggedItem.value === targetDeviceId) return;
 
-	const vehicles = Array.from(props.vehicles);
+	const vehicles = sortedVehicles.value; // Use sorted vehicles instead of props.vehicles
 	const draggedIdx = vehicles.findIndex(
 		(v) => v.device_id === draggedItem.value
 	);
 	const targetIdx = vehicles.findIndex((v) => v.device_id === targetDeviceId);
 
-	// Move the dragged item to the target position
-	const [draggedVehicle] = vehicles.splice(draggedIdx, 1);
-	vehicles.splice(targetIdx, 0, draggedVehicle);
-
 	const originalOrder = new Map<string, number>();
 
 	try {
+		// Create a new array with the updated order
+		const reorderedVehicles = [...vehicles];
+		const [draggedVehicle] = reorderedVehicles.splice(draggedIdx, 1);
+		reorderedVehicles.splice(targetIdx, 0, draggedVehicle);
+
 		// Update sort orders
-		for (let idx = 0; idx < vehicles.length; idx++) {
-			const vehicle = vehicles[idx];
+		reorderedVehicles.forEach((vehicle, idx) => {
 			const pref = localPreferences[vehicle.device_id];
 			if (pref) {
 				originalOrder.set(vehicle.device_id, pref.sortOrder);
 				pref.sortOrder = idx;
 			}
-		}
-
-		// Prepare batch update
-		const updates: PreferencePayload[] = vehicles.map((vehicle) => {
-			const pref = localPreferences[vehicle.device_id];
-			return {
-				device_id: vehicle.device_id,
-				client_id: getClientId(),
-				display_name: pref?.displayName || vehicle.display_name,
-				is_hidden: pref?.isHidden || false,
-				sort_order: pref?.sortOrder || 0,
-			};
 		});
 
-		// Optimistically apply changes to global preferences
-		applyChanges();
+		// Prepare batch update
+		const updates: PreferencePayload[] = reorderedVehicles.map((vehicle) => ({
+			device_id: vehicle.device_id,
+			client_id: getClientId(),
+			display_name:
+				localPreferences[vehicle.device_id]?.displayName ||
+				vehicle.display_name,
+			is_hidden: localPreferences[vehicle.device_id]?.isHidden || false,
+			sort_order: localPreferences[vehicle.device_id]?.sortOrder || 0,
+		}));
 
+		// Apply changes to global preferences
 		await savePreferencesBatch(updates);
 		emit("preferences-updated");
 	} catch (err) {
@@ -322,12 +339,6 @@ const onDrop = async (targetDeviceId: string) => {
 				pref.sortOrder = order;
 			}
 		});
-
-		// Revert global preferences
-		Object.assign(
-			props.preferences,
-			JSON.parse(JSON.stringify(localPreferences))
-		);
 	} finally {
 		draggedItem.value = null;
 	}
@@ -400,13 +411,13 @@ const onDrop = async (targetDeviceId: string) => {
 
 				<v-list v-if="!loading">
 					<v-list-item
-						v-for="vehicle in props.vehicles"
+						v-for="vehicle in sortedVehicles"
 						:key="vehicle.device_id"
 						:draggable="true"
 						@dragstart="onDragStart(vehicle.device_id)"
 						@dragover="onDragOver"
 						@drop="onDrop(vehicle.device_id)"
-						class="mb-2"
+						class="mb-2 preference-item"
 					>
 						<template v-slot:prepend>
 							<v-icon color="grey">mdi-drag</v-icon>
@@ -469,6 +480,28 @@ const onDrop = async (targetDeviceId: string) => {
 </template>
 
 <style scoped>
+.preference-item {
+	cursor: move;
+	transition: background-color 0.2s, transform 0.2s;
+}
+
+.preference-item:hover {
+	background-color: rgba(0, 0, 0, 0.04);
+}
+
+.preference-item:active {
+	transform: scale(0.98);
+}
+
+.preference-item .v-text-field {
+	width: 100%;
+}
+
+.preference-item:global(.dragging) {
+	opacity: 0.5;
+	background-color: rgba(0, 0, 0, 0.08);
+}
+
 .v-list-item {
 	cursor: move;
 	transition: background-color 0.2s;
