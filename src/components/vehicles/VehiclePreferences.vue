@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, reactive, watch } from "vue";
+import { ref, reactive, watch, computed } from "vue";
 import { getClientId } from "@/utils/clientId";
 import {
 	savePreference as apiSavePreference,
@@ -22,9 +22,6 @@ interface Preference {
 	isHidden: boolean;
 	sortOrder: number;
 	displayName: string;
-	speed_unit: "mph" | "km/h";
-	distance_unit: "miles" | "kilometers";
-	temperature_unit: "F" | "C";
 }
 
 interface PreferencePayload {
@@ -33,9 +30,6 @@ interface PreferencePayload {
 	display_name: string;
 	is_hidden: boolean;
 	sort_order: number;
-	speed_unit: "mph" | "km/h";
-	distance_unit: "miles" | "kilometers";
-	temperature_unit: "F" | "C";
 }
 
 interface Props {
@@ -99,9 +93,6 @@ const savePreference = async (deviceId: string) => {
 			display_name: pref.displayName,
 			is_hidden: pref.isHidden,
 			sort_order: pref.sortOrder,
-			speed_unit: pref.speed_unit,
-			distance_unit: pref.distance_unit,
-			temperature_unit: pref.temperature_unit,
 		};
 
 		await apiSavePreference(payload);
@@ -222,9 +213,6 @@ const sortAlphabetically = async () => {
 				display_name: pref?.displayName || vehicle.display_name,
 				is_hidden: pref?.isHidden || false,
 				sort_order: pref?.sortOrder || 0,
-				speed_unit: pref?.speed_unit || "mph",
-				distance_unit: pref?.distance_unit || "miles",
-				temperature_unit: pref?.temperature_unit || "F",
 			};
 		});
 
@@ -348,7 +336,7 @@ const onDrop = async (targetDeviceId: string) => {
 
 <template>
 	<v-dialog
-		v-model="props.show"
+		:model-value="props.show"
 		@update:model-value="$emit('update:show', $event)"
 		max-width="800px"
 	>
@@ -426,7 +414,10 @@ const onDrop = async (targetDeviceId: string) => {
 
 						<v-list-item-title>
 							<v-text-field
-								v-model="localPreferences[vehicle.device_id].displayName"
+								:model-value="
+									localPreferences[vehicle.device_id]?.displayName ||
+									vehicle.display_name
+								"
 								@update:model-value="
 									updateDisplayName(vehicle.device_id, $event)
 								"
@@ -439,12 +430,12 @@ const onDrop = async (targetDeviceId: string) => {
 						<template v-slot:append>
 							<v-btn
 								:icon="
-									localPreferences[vehicle.device_id].isHidden
+									localPreferences[vehicle.device_id]?.isHidden
 										? 'mdi-eye-off'
 										: 'mdi-eye'
 								"
 								:color="
-									localPreferences[vehicle.device_id].isHidden
+									localPreferences[vehicle.device_id]?.isHidden
 										? 'grey'
 										: 'success'
 								"
@@ -453,41 +444,6 @@ const onDrop = async (targetDeviceId: string) => {
 								@click="toggleVisibility(vehicle.device_id)"
 							></v-btn>
 						</template>
-
-						<!-- New Unit Preference Selectors -->
-						<v-list-item-subtitle>
-							<div class="unit-preferences">
-								<!-- Speed Unit -->
-								<v-select
-									v-model="localPreferences[vehicle.device_id].speed_unit"
-									:items="['mph', 'km/h']"
-									label="Speed Unit"
-									density="compact"
-									hide-details
-									@change="savePreference(vehicle.device_id)"
-								></v-select>
-
-								<!-- Distance Unit -->
-								<v-select
-									v-model="localPreferences[vehicle.device_id].distance_unit"
-									:items="['miles', 'kilometers']"
-									label="Distance Unit"
-									density="compact"
-									hide-details
-									@change="savePreference(vehicle.device_id)"
-								></v-select>
-
-								<!-- Temperature Unit -->
-								<v-select
-									v-model="localPreferences[vehicle.device_id].temperature_unit"
-									:items="['F', 'C']"
-									label="Temperature Unit"
-									density="compact"
-									hide-details
-									@change="savePreference(vehicle.device_id)"
-								></v-select>
-							</div>
-						</v-list-item-subtitle>
 					</v-list-item>
 				</v-list>
 
@@ -523,16 +479,6 @@ const onDrop = async (targetDeviceId: string) => {
 }
 
 .v-list-item .v-text-field {
-	width: 100%;
-}
-
-.unit-preferences {
-	display: flex;
-	flex-direction: column;
-	gap: 10px;
-}
-
-.unit-preferences > * {
 	width: 100%;
 }
 </style>
