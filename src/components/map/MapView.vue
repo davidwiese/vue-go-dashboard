@@ -1,17 +1,31 @@
-<script setup>
+<script setup lang="ts">
 import { ref, computed, watch } from "vue";
 import GoogleMapLoader from "./GoogleMapLoader.vue";
 
-const props = defineProps({
-	vehicles: {
-		type: Array,
-		required: true,
-	},
-	preferences: {
-		type: Object,
-		required: true,
-	},
-});
+interface Vehicle {
+	device_id: string;
+	display_name: string;
+	online: boolean;
+	latest_device_point?: {
+		speed: number;
+		lat: number;
+		lng: number;
+		dt_tracker: string;
+	};
+}
+
+interface Preference {
+	isHidden: boolean;
+	sortOrder: number;
+	displayName: string;
+}
+
+interface Props {
+	vehicles: Vehicle[];
+	preferences: Record<string, Preference>;
+}
+
+const props = defineProps<Props>();
 
 const mapConfig = computed(() => ({
 	center: { lat: 36.7783, lng: -119.4179 },
@@ -21,9 +35,9 @@ const mapConfig = computed(() => ({
 const API_KEY = import.meta.env.VITE_GOOGLE_MAPS_API_KEY;
 
 // Map and markers references
-const map = ref(null);
-const google = ref(null);
-const markers = ref({});
+const map = ref<any>(null);
+const google = ref<any>(null);
+const markers = ref<Record<string, any>>({});
 
 // Helper function to get marker icon
 const getMarkerIcon = (vehicle) => {

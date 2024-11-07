@@ -1,18 +1,33 @@
-<script setup>
+<script setup lang="ts">
 import { ref, computed } from "vue";
 import VehiclePreferences from "./VehiclePreferences.vue";
 
-const props = defineProps({
-	vehicles: {
-		type: Array,
-		required: true,
-	},
-	preferences: {
-		type: Object,
-		required: true,
-	},
-});
+// Interfaces
+interface Vehicle {
+	device_id: string;
+	display_name: string;
+	online: boolean;
+	latest_device_point?: {
+		speed: number;
+		lat: number;
+		lng: number;
+		dt_tracker: string;
+	};
+}
 
+interface Preference {
+	isHidden: boolean;
+	sortOrder: number;
+	displayName: string;
+}
+
+// Props
+interface Props {
+	vehicles: Vehicle[];
+	preferences: Record<string, Preference>;
+}
+
+const props = defineProps<Props>();
 const emit = defineEmits(["preferences-updated"]);
 const showPreferences = ref(false);
 
@@ -27,35 +42,33 @@ const displayedVehicles = computed(() => {
 		});
 });
 
-const getDisplayName = (vehicle) => {
+const getDisplayName = (vehicle: Vehicle) => {
 	return (
 		props.preferences?.[vehicle.device_id]?.displayName || vehicle.display_name
 	);
 };
 
-const getStatusColor = (vehicle) => {
+const getStatusColor = (vehicle: Vehicle) => {
 	if (!vehicle.online) return "error";
 	if (vehicle.latest_device_point?.speed > 0) return "success";
 	return "warning";
 };
 
-const getStatusIcon = (vehicle) => {
+const getStatusIcon = (vehicle: Vehicle) => {
 	if (!vehicle.online) return "mdi-car-off";
 	return "mdi-car-side";
 };
 
-const formatSpeed = (vehicle) => {
-	return (
-		vehicle.latest_device_point?.device_point_detail?.speed?.display || "N/A"
-	);
+const formatSpeed = (vehicle: Vehicle) => {
+	return vehicle.latest_device_point?.speed?.toString() || "N/A";
 };
 
-const formatLastUpdate = (timestamp) => {
+const formatLastUpdate = (timestamp: string | undefined) => {
 	if (!timestamp) return "N/A";
 	return new Date(timestamp).toLocaleString();
 };
 
-const getVehicleLocation = (vehicle) => {
+const getVehicleLocation = (vehicle: Vehicle) => {
 	const lat = vehicle.latest_device_point?.lat;
 	const lng = vehicle.latest_device_point?.lng;
 	if (!lat || !lng) return "Unknown";
@@ -147,7 +160,8 @@ const handlePreferencesUpdated = () => {
 
 		<VehiclePreferences
 			v-model:show="showPreferences"
-			:vehicles="vehicles"
+			:vehicles="props.vehicles"
+			:preferences="props.preferences"
 			@preferences-updated="handlePreferencesUpdated"
 		/>
 	</v-card>

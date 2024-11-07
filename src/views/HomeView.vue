@@ -1,31 +1,49 @@
-<script setup>
+<script setup lang="ts">
 import { reactive, ref, onMounted, onBeforeUnmount } from "vue";
 import axios from "axios";
 import MapView from "@/components/map/MapView.vue";
 import VehicleList from "@/components/vehicles/VehicleList.vue";
 import { getClientId } from "@/utils/clientId";
+import { getPreferences } from "@/api/apiService";
+
+// Interfaces
+interface Vehicle {
+	device_id: string;
+	display_name: string;
+	online: boolean;
+	latest_device_point?: {
+		speed: number;
+		lat: number;
+		lng: number;
+		dt_tracker: string;
+	};
+}
+
+interface Preference {
+	isHidden: boolean;
+	sortOrder: number;
+	displayName: string;
+}
 
 // Constants
 const API_BASE_URL = "http://localhost:5000";
 const WS_URL = "ws://localhost:5000/ws";
 
 // WebSocket connection
-let socket = null;
+let socket: WebSocket | null = null;
 
 // State
-const vehicles = ref([]);
-const preferences = reactive({});
+const vehicles = ref<Vehicle[]>([]);
+const preferences = reactive<Record<string, Preference>>({});
 
-// Load preferences
+// Load preferences from server
 const loadPreferences = async () => {
 	try {
 		const clientId = getClientId();
 		console.log("Loading preferences for client:", clientId);
 
-		const response = await axios.get(
-			`${API_BASE_URL}/preferences?client_id=${clientId}`
-		);
-		console.log("Raw preference data from server:", response.data);
+		const prefs = await getPreferences(clientId);
+		console.log("Raw preference data from server:", prefs);
 
 		// Clear existing preferences
 		Object.keys(preferences).forEach((key) => delete preferences[key]);
@@ -39,11 +57,11 @@ const loadPreferences = async () => {
 			};
 		});
 
-		// Override with server preferences, mapping snake_case to camelCase
-		response.data.forEach((pref) => {
+		// Override with server preferences
+		prefs.forEach((pref: any) => {
 			preferences[pref.device_id] = {
-				isHidden: pref.is_hidden, // Map from snake_case
-				sortOrder: pref.sort_order, // Map from snake_case
+				isHidden: pref.is_hidden,
+				sortOrder: pref.sort_order,
 				displayName:
 					pref.display_name || preferences[pref.device_id]?.displayName,
 			};
@@ -67,7 +85,7 @@ const initWebSocket = () => {
 	socket = new WebSocket(`${WS_URL}?client_id=${clientId}`);
 
 	socket.onmessage = (event) => {
-		const vehicleUpdates = JSON.parse(event.data);
+		const vehicleUpdates = JSON.parse(event.data) as Vehicle[];
 		vehicles.value = vehicleUpdates;
 	};
 
