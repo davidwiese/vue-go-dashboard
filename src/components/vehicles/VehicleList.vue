@@ -60,7 +60,7 @@ const getStatusIcon = (vehicle: Vehicle) => {
 };
 
 const formatSpeed = (vehicle: Vehicle) => {
-	return vehicle.latest_device_point?.speed?.toString() || "N/A";
+	return vehicle.latest_device_point?.speed?.toFixed(1).toString() || "N/A";
 };
 
 const formatLastUpdate = (timestamp: string | undefined) => {
@@ -142,7 +142,7 @@ const handlePreferencesUpdated = () => {
 						<div class="vehicle-details">
 							<div class="d-flex align-center">
 								<v-icon size="small" class="mr-1">mdi-speedometer</v-icon>
-								{{ formatSpeed(vehicle) }}
+								{{ formatSpeed(vehicle) }} km/h
 							</div>
 							<div class="d-flex align-center">
 								<v-icon size="small" class="mr-1">mdi-map-marker</v-icon>
