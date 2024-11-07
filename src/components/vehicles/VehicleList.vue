@@ -13,12 +13,26 @@ interface Vehicle {
 		lng: number;
 		dt_tracker: string;
 	};
+	drive_state: DriveState;
+}
+
+interface DriveState {
+	status: string; // "off", "idle", "driving"
+	status_id: string;
+	drive_status_distance: {
+		value: number;
+		unit: string; // e.g., "m", "km", "miles"
+		display: string;
+	};
+	begin_time: string; // ISO date string
 }
 
 interface Preference {
 	isHidden: boolean;
 	sortOrder: number;
 	displayName: string;
+	speed_unit: "mph" | "km/h";
+	distance_unit: "miles" | "kilometers";
 }
 
 // Props
@@ -33,13 +47,18 @@ const showPreferences = ref(false);
 
 // Apply preferences to vehicles
 const displayedVehicles = computed(() => {
-	return [...props.vehicles]
-		.filter((vehicle) => !props.preferences?.[vehicle.device_id]?.isHidden)
+	const filtered = [...props.vehicles]
+		.filter((vehicle) => {
+			const pref = props.preferences[vehicle.device_id];
+			return pref ? !pref.isHidden : true; // Default to visible
+		})
 		.sort((a, b) => {
 			const aOrder = props.preferences?.[a.device_id]?.sortOrder || 0;
 			const bOrder = props.preferences?.[b.device_id]?.sortOrder || 0;
 			return aOrder - bOrder;
 		});
+	console.log("Displayed Vehicles:", filtered);
+	return filtered;
 });
 
 const getDisplayName = (vehicle: Vehicle) => {
@@ -59,8 +78,65 @@ const getStatusIcon = (vehicle: Vehicle) => {
 	return "mdi-car-side";
 };
 
+// Updated formatSpeed to apply unit conversion with defensive checks
 const formatSpeed = (vehicle: Vehicle) => {
-	return vehicle.latest_device_point?.speed?.toString() || "N/A";
+	const pref = props.preferences[vehicle.device_id];
+	if (!pref || !vehicle.latest_device_point) return "N/A";
+	let speed = vehicle.latest_device_point.speed;
+	let unit = pref.speed_unit;
+
+	if (unit === "km/h") {
+		speed = speed * 1.60934;
+	}
+
+	return `${speed.toFixed(1)} ${unit}`;
+};
+
+// Implement formatDistance with defensive checks
+const formatDistance = (vehicle: Vehicle) => {
+	const driveState = vehicle.drive_state;
+
+	if (!driveState || !driveState.drive_status_distance) return "N/A";
+
+	const pref = props.preferences[vehicle.device_id];
+	if (!pref) return "N/A";
+
+	let distance = driveState.drive_status_distance.value;
+	let unit = driveState.drive_status_distance.unit; // "m", "km", "miles"
+
+	const prefDistanceUnit = pref.distance_unit; // "miles" or "kilometers"
+
+	// Handle unit conversion
+	if (unit === "m") {
+		if (prefDistanceUnit === "kilometers") {
+			distance = distance / 1000; // Convert meters to kilometers
+			unit = "kilometers";
+		} else if (prefDistanceUnit === "miles") {
+			distance = distance / 1609.34; // Convert meters to miles
+			unit = "miles";
+		}
+	} else if (unit === "km" || unit === "kilometers") {
+		if (prefDistanceUnit === "miles") {
+			distance = distance / 1.60934; // Convert kilometers to miles
+			unit = "miles";
+		} else {
+			unit = "kilometers"; // Ensure consistency
+		}
+	} else if (unit === "miles") {
+		if (prefDistanceUnit === "kilometers") {
+			distance = distance * 1.60934; // Convert miles to kilometers
+			unit = "kilometers";
+		} else {
+			unit = "miles"; // Ensure consistency
+		}
+	}
+
+	// Handle zero distance
+	if (distance === 0) {
+		return `0 ${prefDistanceUnit}`;
+	}
+
+	return `${distance.toFixed(1)} ${prefDistanceUnit}`;
 };
 
 const formatLastUpdate = (timestamp: string | undefined) => {
@@ -71,7 +147,7 @@ const formatLastUpdate = (timestamp: string | undefined) => {
 const getVehicleLocation = (vehicle: Vehicle) => {
 	const lat = vehicle.latest_device_point?.lat;
 	const lng = vehicle.latest_device_point?.lng;
-	if (!lat || !lng) return "Unknown";
+	if (lat == null || lng == null) return "Unknown";
 	return `${lat.toFixed(4)}, ${lng.toFixed(4)}`;
 };
 
@@ -143,6 +219,10 @@ const handlePreferencesUpdated = () => {
 							<div class="d-flex align-center">
 								<v-icon size="small" class="mr-1">mdi-speedometer</v-icon>
 								{{ formatSpeed(vehicle) }}
+							</div>
+							<div class="d-flex align-center">
+								<v-icon size="small" class="mr-1">mdi-road</v-icon>
+								{{ formatDistance(vehicle) }}
 							</div>
 							<div class="d-flex align-center">
 								<v-icon size="small" class="mr-1">mdi-map-marker</v-icon>
