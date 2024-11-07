@@ -23,6 +23,9 @@ interface Preference {
 	isHidden: boolean;
 	sortOrder: number;
 	displayName: string;
+	speed_unit: "mph" | "km/h";
+	distance_unit: "miles" | "kilometers";
+	temperature_unit: "F" | "C";
 }
 
 // Constants
@@ -54,6 +57,9 @@ const loadPreferences = async () => {
 				isHidden: false,
 				sortOrder: 0,
 				displayName: vehicle.display_name,
+				speed_unit: "mph",
+				distance_unit: "miles",
+				temperature_unit: "F",
 			};
 		});
 
@@ -64,6 +70,9 @@ const loadPreferences = async () => {
 				sortOrder: pref.sort_order,
 				displayName:
 					pref.display_name || preferences[pref.device_id]?.displayName,
+				speed_unit: pref.speed_unit || "mph",
+				distance_unit: pref.distance_unit || "miles",
+				temperature_unit: pref.temperature_unit || "F",
 			};
 		});
 
