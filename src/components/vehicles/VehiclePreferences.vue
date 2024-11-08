@@ -364,6 +364,7 @@ const onDrop = async (targetDeviceId: string) => {
 			<v-card-subtitle>
 				<div class="d-flex align-center gap-2 my-2">
 					<v-btn
+						class="mr-2"
 						variant="tonal"
 						size="small"
 						prepend-icon="mdi-sort-alphabetical-ascending"
@@ -374,6 +375,7 @@ const onDrop = async (targetDeviceId: string) => {
 					</v-btn>
 
 					<v-btn
+						class="mr-2"
 						variant="tonal"
 						size="small"
 						prepend-icon="mdi-eye"
