@@ -137,16 +137,19 @@ const generateReport = async () => {
 	<v-dialog
 		:model-value="modelValue"
 		@update:model-value="closeDialog"
-		max-width="500px"
+		max-width="800px"
 		persistent
+		class="report-dialog"
 	>
 		<v-card>
-			<v-card-title class="d-flex align-center">
-				<v-icon class="mr-2">mdi-file-chart</v-icon>
-				Generate Vehicle Report
+			<v-card-title class="report-header d-flex align-center justify-center">
+				<v-icon class="mr-3" color="primary">mdi-file-chart</v-icon>
+				<span class="text-h6">Generate Vehicle Report</span>
 			</v-card-title>
 
-			<v-card-text>
+			<v-divider></v-divider>
+
+			<v-card-text class="report-content">
 				<!-- Error Alert -->
 				<v-alert
 					v-if="showError"
@@ -190,17 +193,28 @@ const generateReport = async () => {
 				</v-alert>
 			</v-card-text>
 
-			<v-card-actions>
-				<v-spacer></v-spacer>
+			<v-divider></v-divider>
+
+			<v-card-actions class="report-actions d-flex justify-end">
 				<v-btn
+					variant="tonal"
 					color="primary"
+					size="small"
 					:loading="isGeneratingReport"
 					:disabled="isGeneratingReport"
 					@click="generateReport"
+					class="action-btn"
 				>
 					{{ isGeneratingReport ? "Generating..." : "Generate Report" }}
 				</v-btn>
-				<v-btn text @click="closeDialog" :disabled="isGeneratingReport">
+				<v-btn
+					variant="tonal"
+					color="grey-darken-1"
+					size="small"
+					@click="closeDialog"
+					:disabled="isGeneratingReport"
+					class="action-btn"
+				>
 					Cancel
 				</v-btn>
 			</v-card-actions>
@@ -209,6 +223,35 @@ const generateReport = async () => {
 </template>
 
 <style scoped>
+.report-dialog {
+	border-radius: 12px;
+}
+
+.report-header {
+	padding: 16px 20px;
+}
+
+.report-actions {
+	padding: 16px 20px;
+}
+
+.button-container {
+	display: flex;
+	justify-content: center;
+	gap: 16px; /* Increased space between buttons */
+}
+
+.action-btn {
+	text-transform: none;
+	font-weight: 500;
+	letter-spacing: 0.5px;
+	min-width: 120px; /* Ensure consistent button widths */
+}
+
+.report-content {
+	padding: 16px 20px;
+}
+
 .v-alert {
 	margin-bottom: 16px;
 }
