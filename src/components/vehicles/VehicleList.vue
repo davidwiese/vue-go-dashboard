@@ -42,6 +42,7 @@ const showReportDialog = ref(false);
 const selectedVehicle = ref<Vehicle | null>(null);
 const selectedTimeframe = ref<string>("24h");
 const isGeneratingReport = ref(false);
+const reportProgress = ref(0);
 
 const timeframes = computed<ReportTimeframe[]>(() => {
 	const now = new Date();
@@ -70,21 +71,6 @@ const timeframes = computed<ReportTimeframe[]>(() => {
 const openReportDialog = (vehicle: Vehicle) => {
 	selectedVehicle.value = vehicle;
 	showReportDialog.value = true;
-};
-
-const pollReportStatus = async (reportId: string) => {
-	try {
-		const response = await fetch(`/api/report/status/${reportId}`);
-		if (!response.ok) {
-			throw new Error("Failed to get report status");
-		}
-
-		const status = await response.json();
-		return status;
-	} catch (error) {
-		console.error("Error polling report status:", error);
-		throw error;
-	}
 };
 
 const downloadReport = async (reportId: string) => {
@@ -127,7 +113,7 @@ const generateReport = async () => {
 		);
 		if (!timeframe) return;
 
-		// Update URL to match backend route
+		console.log("Generating report...");
 		const response = await fetch("/api/report/generate", {
 			method: "POST",
 			headers: {
@@ -161,18 +147,20 @@ const generateReport = async () => {
 			}),
 		});
 
-		console.log("Report generation response:", response); // Add this for debugging
-
 		if (!response.ok) {
-			const errorText = await response.text();
-			console.error("Error response:", errorText); // Add this for debugging
-			throw new Error(`Failed to generate report: ${errorText}`);
+			throw new Error("Failed to generate report");
 		}
 
-		const data = await response.json();
-		console.log("Report data:", data); // Add this for debugging
-
-		const reportId = data.report_generated_id;
+		// Get the response as a blob
+		const blob = await response.blob();
+		const url = window.URL.createObjectURL(blob);
+		const a = document.createElement("a");
+		a.href = url;
+		a.download = `${selectedVehicle.value.display_name}_report.pdf`;
+		document.body.appendChild(a);
+		a.click();
+		window.URL.revokeObjectURL(url);
+		document.body.removeChild(a);
 
 		showReportDialog.value = false;
 	} catch (error) {
@@ -353,6 +341,17 @@ const handleVehicleClick = (vehicle: Vehicle) => {
 							:value="timeframe.value"
 						></v-radio>
 					</v-radio-group>
+					<v-progress-linear
+						v-if="isPolling"
+						:value="reportProgress"
+						height="25"
+						color="primary"
+						striped
+					>
+						<template v-slot:default>
+							<strong>{{ Math.ceil(reportProgress) }}%</strong>
+						</template>
+					</v-progress-linear>
 				</v-card-text>
 
 				<v-card-actions>
