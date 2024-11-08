@@ -341,17 +341,6 @@ const handleVehicleClick = (vehicle: Vehicle) => {
 							:value="timeframe.value"
 						></v-radio>
 					</v-radio-group>
-					<v-progress-linear
-						v-if="isPolling"
-						:value="reportProgress"
-						height="25"
-						color="primary"
-						striped
-					>
-						<template v-slot:default>
-							<strong>{{ Math.ceil(reportProgress) }}%</strong>
-						</template>
-					</v-progress-linear>
 				</v-card-text>
 
 				<v-card-actions>
