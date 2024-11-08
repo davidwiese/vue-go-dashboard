@@ -141,12 +141,6 @@ onBeforeUnmount(() => {
 <template>
 	<div class="home-view">
 		<v-container fluid>
-			<v-row>
-				<v-col cols="12">
-					<h1 class="text-h4 mb-4">Vehicle Tracker</h1>
-				</v-col>
-			</v-row>
-
 			<v-row class="flex-column flex-md-row">
 				<!-- Map takes full width on mobile, 2/3 on larger screens -->
 				<v-col cols="12" md="8" order="2" order-md="1">
@@ -179,28 +173,24 @@ onBeforeUnmount(() => {
 	overflow: hidden;
 }
 
-/* Adjust map height based on screen size */
 .map-container {
-	height: 50vh;
+	height: 60vh;
+	border-radius: 8px;
+	box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+	margin-bottom: 16px; /* Add margin between map and list on mobile */
 }
 
 @media (min-width: 960px) {
 	.map-container {
-		height: calc(100vh - 180px);
+		height: calc(100vh - 100px);
 		position: sticky;
 		top: 64px;
 	}
 
 	.vehicle-list-container {
-		max-height: calc(100vh - 180px);
+		max-height: calc(100vh - 100px);
 		overflow-y: auto;
-	}
-}
-
-/* Add some breathing room on mobile */
-@media (max-width: 959px) {
-	.v-container {
-		padding-bottom: 76px;
+		padding-right: 8px;
 	}
 }
 </style>
