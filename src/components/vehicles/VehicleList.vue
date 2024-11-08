@@ -113,7 +113,6 @@ const generateReport = async () => {
 		);
 		if (!timeframe) return;
 
-		console.log("Generating report...");
 		const response = await fetch("/api/report/generate", {
 			method: "POST",
 			headers: {
@@ -142,6 +141,7 @@ const generateReport = async () => {
 						display_decimal_places: 1,
 						duration_format: "standard",
 						use_pdf_landscape: true,
+						use_xlsx_separated_format: false,
 					},
 				},
 			}),
@@ -151,7 +151,7 @@ const generateReport = async () => {
 			throw new Error("Failed to generate report");
 		}
 
-		// Get the response as a blob
+		// The response will be the actual report file
 		const blob = await response.blob();
 		const url = window.URL.createObjectURL(blob);
 		const a = document.createElement("a");

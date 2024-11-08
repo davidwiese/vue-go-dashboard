@@ -20,16 +20,21 @@ export default defineConfig({
 				target: "http://localhost:5000",
 				changeOrigin: true,
 				rewrite: (path) => path.replace(/^\/api/, ""),
-				configure: (proxy, options) => {
-					// Log proxy events for debugging
-					proxy.on("error", (err, req, res) => {
+				configure: (proxy, _options) => {
+					proxy.on("error", (err, _req, _res) => {
 						console.log("proxy error", err);
 					});
-					proxy.on("proxyReq", (proxyReq, req, res) => {
-						console.log("Sending Request to:", proxyReq.path);
+					proxy.on("proxyReq", (proxyReq, req, _res) => {
+						console.log("Sending Request:", {
+							path: req.url,
+							method: req.method,
+						});
 					});
-					proxy.on("proxyRes", (proxyRes, req, res) => {
-						console.log("Received Response from:", proxyRes.req.path);
+					proxy.on("proxyRes", (proxyRes, req, _res) => {
+						console.log("Received Response:", {
+							path: req.url,
+							status: proxyRes.statusCode,
+						});
 					});
 				},
 			},
