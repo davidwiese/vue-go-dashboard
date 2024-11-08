@@ -38,6 +38,18 @@ const formatLastUpdate = (timestamp?: string) => {
 	if (!timestamp) return "N/A";
 	return new Date(timestamp).toLocaleString();
 };
+
+const formatLocation = () => {
+	const lat = props.vehicle.latest_device_point?.lat;
+	const lng = props.vehicle.latest_device_point?.lng;
+	if (!lat || !lng) return "Unknown";
+
+	// At smaller widths, we'll show shorter decimals
+	if (window.innerWidth < 1200) {
+		return `${lat.toFixed(2)}, ${lng.toFixed(2)}`;
+	}
+	return `${lat.toFixed(4)}, ${lng.toFixed(4)}`;
+};
 </script>
 
 <template>
@@ -70,16 +82,18 @@ const formatLastUpdate = (timestamp?: string) => {
 			</div>
 
 			<div class="details">
-				<div class="detail-row">
-					<v-icon size="x-small" color="primary">mdi-speedometer</v-icon>
-					<span class="detail-text">{{ formatSpeed() }} km/h</span>
-					<v-icon size="x-small" color="primary" class="location-icon"
-						>mdi-map-marker</v-icon
-					>
-					<span class="detail-text">{{ getVehicleLocation() }}</span>
+				<div class="metrics">
+					<div class="metric-item">
+						<v-icon size="x-small" color="primary">mdi-speedometer</v-icon>
+						<span class="detail-text">{{ formatSpeed() }} km/h</span>
+					</div>
+					<div class="metric-item">
+						<v-icon size="x-small" color="primary">mdi-map-marker</v-icon>
+						<span class="detail-text">{{ formatLocation() }}</span>
+					</div>
 				</div>
 				<div class="timestamp">
-					Last Updated:
+					Updated:
 					{{ formatLastUpdate(vehicle.latest_device_point?.dt_tracker) }}
 				</div>
 			</div>
@@ -105,17 +119,15 @@ const formatLastUpdate = (timestamp?: string) => {
 
 <style scoped>
 .vehicle-card {
-	margin: 8px 2px; /* Added horizontal margin to show side shadows */
+	margin: 8px 2px;
 	transition: all 0.2s ease;
-	border-radius: 8px; /* Ensure consistent border radius */
-	box-shadow: 0 2px 4px rgba(0, 0, 0, 0.08),
-		/* Subtle shadow for normal state */ 0 0 2px rgba(0, 0, 0, 0.04); /* Very subtle side shadow */
+	border-radius: 8px;
+	box-shadow: 0 2px 4px rgba(0, 0, 0, 0.08), 0 0 2px rgba(0, 0, 0, 0.04);
 }
 
 .vehicle-card:hover {
 	transform: translateY(-2px);
-	box-shadow: 0 4px 8px rgba(0, 0, 0, 0.12),
-		/* Stronger bottom shadow on hover */ 0 0 4px rgba(0, 0, 0, 0.06); /* Stronger side shadow on hover */
+	box-shadow: 0 4px 8px rgba(0, 0, 0, 0.12), 0 0 4px rgba(0, 0, 0, 0.06);
 }
 
 .card-content {
@@ -147,10 +159,6 @@ const formatLastUpdate = (timestamp?: string) => {
 	min-width: 0;
 }
 
-.vehicle-icon {
-	flex-shrink: 0;
-}
-
 .vehicle-name {
 	font-weight: 500;
 	white-space: nowrap;
@@ -162,27 +170,36 @@ const formatLastUpdate = (timestamp?: string) => {
 .details {
 	display: flex;
 	flex-direction: column;
-	gap: 4px;
+	gap: 8px;
 }
 
-.detail-row {
+.metrics {
+	display: flex;
+	flex-direction: column;
+	gap: 2px !important; /* Force consistent tiny gap */
+	margin: 0; /* Remove any potential margin */
+}
+
+.metric-item {
 	display: flex;
 	align-items: center;
-	gap: 8px;
-	color: rgba(0, 0, 0, 0.6);
-}
-
-.location-icon {
-	margin-left: 8px;
+	gap: 4px;
+	white-space: nowrap;
+	line-height: 1.2; /* Control line height explicitly */
+	min-height: 20px; /* Set consistent height */
 }
 
 .detail-text {
 	font-size: 0.875rem;
+	color: rgba(0, 0, 0, 0.6);
 }
 
 .timestamp {
-	font-size: 0.75rem;
+	font-size: 0.7rem; /* Slightly smaller */
 	color: rgba(0, 0, 0, 0.38);
+	white-space: nowrap;
+	padding-right: 16px; /* More padding on the right */
+	margin-top: 4px;
 }
 
 .card-footer {
@@ -199,5 +216,16 @@ const formatLastUpdate = (timestamp?: string) => {
 
 .report-btn:hover {
 	background-color: rgba(var(--v-theme-primary), 0.15);
+}
+
+/* Ensure consistent spacing at all breakpoints */
+@media (max-width: 1200px) {
+	.metrics {
+		gap: 2px !important;
+	}
+
+	.metric-item {
+		min-height: 20px;
+	}
 }
 </style>
