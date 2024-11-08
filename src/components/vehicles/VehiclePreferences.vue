@@ -354,7 +354,7 @@ const onDrop = async (targetDeviceId: string) => {
 		<v-card class="preferences-dialog">
 			<v-card-title class="preferences-header">
 				<div class="d-flex align-center">
-					<v-icon class="mr-3" color="primary">mdi-cog</v-icon>
+					<v-icon class="mr-3" color="grey-darken-1">mdi-cog</v-icon>
 					<span class="text-h6">Vehicle Preferences</span>
 				</div>
 			</v-card-title>
