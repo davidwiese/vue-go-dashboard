@@ -174,17 +174,27 @@ onBeforeUnmount(() => {
 }
 
 .map-container {
-	height: 60vh;
+	height: 55vh;
 	border-radius: 8px;
 	box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
-	margin-bottom: 16px; /* Add margin between map and list on mobile */
+	margin-bottom: 16px;
 }
 
 @media (min-width: 960px) {
 	.map-container {
-		height: calc(100vh - 100px);
-		position: sticky;
-		top: 64px;
+		height: 0;
+		padding-bottom: 71%;
+		position: relative;
+		max-height: calc(100vh - 160px);
+	}
+
+	.map-container :deep(.v-card-text) {
+		position: absolute;
+		top: 0;
+		left: 0;
+		right: 0;
+		bottom: 0;
+		height: 100%;
 	}
 
 	.vehicle-list-container {
