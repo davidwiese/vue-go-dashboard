@@ -41,79 +41,163 @@ const formatLastUpdate = (timestamp?: string) => {
 </script>
 
 <template>
-	<v-list-item :class="{ offline: !vehicle.online }">
-		<template v-slot:prepend>
-			<v-icon
-				:color="
-					vehicle.online
-						? vehicle.latest_device_point?.speed > 0
-							? 'success'
-							: 'warning'
-						: 'error'
-				"
-				@click="emit('click', vehicle)"
-				style="cursor: pointer"
-			>
-				{{ vehicle.online ? "mdi-car-side" : "mdi-car-off" }}
-			</v-icon>
-		</template>
-
-		<v-list-item-title
-			class="d-flex align-center"
-			@click="emit('click', vehicle)"
-			style="cursor: pointer"
-		>
-			<span class="font-weight-medium">{{ displayName }}</span>
-			<StatusChip
-				:label="vehicle.online ? 'ONLINE' : 'OFFLINE'"
-				:color="vehicle.online ? 'success' : 'error'"
-				size="x-small"
-				class="ml-2"
-			/>
-		</v-list-item-title>
-
-		<v-list-item-subtitle>
-			<div class="vehicle-details">
-				<div class="d-flex align-center">
-					<v-icon size="small" class="mr-1">mdi-speedometer</v-icon>
-					{{ formatSpeed() }} km/h
+	<v-card :class="['vehicle-card', { offline: !vehicle.online }]" elevation="2">
+		<!-- Main card content (clickable) -->
+		<div class="card-content" @click="emit('click', vehicle)">
+			<div class="header">
+				<div class="title-section">
+					<v-icon
+						:color="
+							vehicle.online
+								? vehicle.latest_device_point?.speed > 0
+									? 'success'
+									: 'warning'
+								: 'error'
+						"
+						size="small"
+						class="vehicle-icon"
+					>
+						{{ vehicle.online ? "mdi-car-side" : "mdi-car-off" }}
+					</v-icon>
+					<span class="vehicle-name">{{ displayName }}</span>
+					<StatusChip
+						:label="vehicle.online ? 'ONLINE' : 'OFFLINE'"
+						:color="vehicle.online ? 'success' : 'error'"
+						size="x-small"
+						class="status-chip"
+					/>
 				</div>
-				<div class="d-flex align-center">
-					<v-icon size="small" class="mr-1">mdi-map-marker</v-icon>
-					{{ getVehicleLocation() }}
+			</div>
+
+			<div class="details">
+				<div class="detail-row">
+					<v-icon size="x-small" color="primary">mdi-speedometer</v-icon>
+					<span class="detail-text">{{ formatSpeed() }} km/h</span>
+					<v-icon size="x-small" color="primary" class="location-icon"
+						>mdi-map-marker</v-icon
+					>
+					<span class="detail-text">{{ getVehicleLocation() }}</span>
 				</div>
-				<div class="text-caption mt-1">
+				<div class="timestamp">
 					Last Updated:
 					{{ formatLastUpdate(vehicle.latest_device_point?.dt_tracker) }}
 				</div>
 			</div>
-		</v-list-item-subtitle>
+		</div>
 
-		<template v-slot:append>
+		<!-- Footer with report button -->
+		<v-divider></v-divider>
+		<div class="card-footer" @click.stop>
 			<v-btn
-				icon
+				variant="tonal"
 				color="primary"
-				variant="text"
+				size="small"
+				class="report-btn"
 				@click="emit('generateReport', vehicle)"
-				title="Generate Report"
+				:ripple="false"
 			>
-				<v-icon>mdi-file-chart</v-icon>
+				<v-icon size="small" class="mr-1">mdi-file-chart</v-icon>
+				Generate Report
 			</v-btn>
-		</template>
-	</v-list-item>
+		</div>
+	</v-card>
 </template>
 
 <style scoped>
+.vehicle-card {
+	margin: 8px 2px; /* Added horizontal margin to show side shadows */
+	transition: all 0.2s ease;
+	border-radius: 8px; /* Ensure consistent border radius */
+	box-shadow: 0 2px 4px rgba(0, 0, 0, 0.08),
+		/* Subtle shadow for normal state */ 0 0 2px rgba(0, 0, 0, 0.04); /* Very subtle side shadow */
+}
+
+.vehicle-card:hover {
+	transform: translateY(-2px);
+	box-shadow: 0 4px 8px rgba(0, 0, 0, 0.12),
+		/* Stronger bottom shadow on hover */ 0 0 4px rgba(0, 0, 0, 0.06); /* Stronger side shadow on hover */
+}
+
+.card-content {
+	padding: 12px 16px;
+	cursor: pointer;
+	transition: background-color 0.2s ease;
+}
+
+.card-content:hover {
+	background-color: rgba(0, 0, 0, 0.03);
+}
+
 .offline {
 	opacity: 0.7;
 }
 
-.vehicle-details {
-	font-size: 0.875rem;
-	line-height: 1.4;
+.header {
+	display: flex;
+	justify-content: space-between;
+	align-items: center;
+	margin-bottom: 8px;
 }
 
-.vehicle-details > div {
-	margin-bottom: 2px;
+.title-section {
+	display: flex;
+	align-items: center;
+	gap: 8px;
+	flex: 1;
+	min-width: 0;
+}
+
+.vehicle-icon {
+	flex-shrink: 0;
+}
+
+.vehicle-name {
+	font-weight: 500;
+	white-space: nowrap;
+	overflow: hidden;
+	text-overflow: ellipsis;
+	color: rgba(0, 0, 0, 0.87);
+}
+
+.details {
+	display: flex;
+	flex-direction: column;
+	gap: 4px;
+}
+
+.detail-row {
+	display: flex;
+	align-items: center;
+	gap: 8px;
+	color: rgba(0, 0, 0, 0.6);
+}
+
+.location-icon {
+	margin-left: 8px;
+}
+
+.detail-text {
+	font-size: 0.875rem;
+}
+
+.timestamp {
+	font-size: 0.75rem;
+	color: rgba(0, 0, 0, 0.38);
+}
+
+.card-footer {
+	display: flex;
+	justify-content: center;
+	padding: 8px 16px;
+}
+
+.report-btn {
+	font-weight: 500;
+	letter-spacing: 0.5px;
+	text-transform: none;
+}
+
+.report-btn:hover {
+	background-color: rgba(var(--v-theme-primary), 0.15);
 }
 </style>

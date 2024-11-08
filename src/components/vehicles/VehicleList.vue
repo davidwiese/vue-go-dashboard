@@ -73,27 +73,27 @@ const getDisplayName = (vehicle: Vehicle) => {
 
 <template>
 	<v-card class="vehicle-list">
-		<v-card-title class="d-flex align-center">
-			<v-icon class="mr-2">mdi-car-multiple</v-icon>
-			Vehicles
-			<v-spacer></v-spacer>
-			<v-btn
-				icon
-				variant="text"
-				@click="showPreferences = true"
-				class="mr-2"
-				title="Vehicle Preferences"
-			>
-				<v-icon>mdi-cog</v-icon>
-			</v-btn>
+		<v-card-title class="title-bar">
+			<v-icon class="title-icon">mdi-car-multiple</v-icon>
 			<StatusChip
 				:label="`${onlineCount}/${displayedVehicles.length} Online`"
 				:color="
 					onlineCount === displayedVehicles.length ? 'success' : 'warning'
 				"
-				class="ml-2"
+				class="status-chip"
 			/>
+			<v-btn
+				icon
+				variant="text"
+				@click="showPreferences = true"
+				class="settings-btn"
+				title="Vehicle Preferences"
+			>
+				<v-icon>mdi-cog</v-icon>
+			</v-btn>
 		</v-card-title>
+
+		<v-divider></v-divider>
 
 		<v-card-text>
 			<v-list>
@@ -104,14 +104,16 @@ const getDisplayName = (vehicle: Vehicle) => {
 					:display-name="getDisplayName(vehicle)"
 					@click="handleVehicleClick"
 					@generate-report="handleGenerateReport"
+					class="vehicle-card"
 				/>
 			</v-list>
 		</v-card-text>
 
 		<VehiclePreferences
-			v-model:show="showPreferences"
+			:show="showPreferences"
 			:vehicles="props.vehicles"
 			:preferences="props.preferences"
+			@update:show="showPreferences = $event"
 			@preferences-updated="handlePreferencesUpdated"
 		/>
 
@@ -119,12 +121,47 @@ const getDisplayName = (vehicle: Vehicle) => {
 			v-if="selectedVehicle"
 			v-model="showReportDialog"
 			:vehicle="selectedVehicle"
+			@close="selectedVehicle = null"
 		/>
 	</v-card>
 </template>
 
 <style scoped>
 .vehicle-list {
-	height: 100%;
+	background-color: #ffffff;
+	border-radius: 8px;
+	box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+	padding: 4px;
+}
+
+.title-bar {
+	display: flex;
+	justify-content: space-between;
+	align-items: center;
+	padding: 0 8px;
+}
+
+.title-icon {
+	font-size: 1.5rem;
+	color: #1e88e5;
+}
+
+.settings-btn {
+	color: #666;
+}
+
+.status-chip {
+	font-weight: 500;
+	font-size: 0.875rem;
+	border-radius: 4px;
+}
+
+.v-card-text {
+	padding-top: 8px;
+	padding-bottom: 8px;
+}
+
+.vehicle-card {
+	margin-bottom: 12px;
 }
 </style>
