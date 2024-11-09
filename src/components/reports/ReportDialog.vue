@@ -189,7 +189,7 @@ const generateReport = async () => {
 							class="mr-2"
 						></v-progress-circular>
 					</template>
-					Generating report... This may take up to 30 seconds.
+					Generating report... This may take up to 1 minute.
 				</v-alert>
 			</v-card-text>
 

@@ -96,7 +96,7 @@ const getDisplayName = (vehicle: Vehicle) => {
 		<v-divider></v-divider>
 
 		<v-card-text>
-			<v-list>
+			<div class="vehicle-grid">
 				<VehicleCard
 					v-for="vehicle in displayedVehicles"
 					:key="vehicle.device_id"
@@ -106,7 +106,7 @@ const getDisplayName = (vehicle: Vehicle) => {
 					@generate-report="handleGenerateReport"
 					class="vehicle-card"
 				/>
-			</v-list>
+			</div>
 		</v-card-text>
 
 		<VehiclePreferences
@@ -163,7 +163,21 @@ const getDisplayName = (vehicle: Vehicle) => {
 	padding-bottom: 8px;
 }
 
+/* Grid Layout */
+.vehicle-grid {
+	display: grid;
+	grid-template-columns: 1fr;
+	gap: 12px;
+}
+
+@media (min-width: 500px) and (max-width: 959px) {
+	.vehicle-grid {
+		grid-template-columns: repeat(2, 1fr);
+		gap: 8px;
+	}
+}
+
 .vehicle-card {
-	margin-bottom: 12px;
+	margin: 0; /* Remove margin since we're using grid gap */
 }
 </style>
