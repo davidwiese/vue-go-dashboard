@@ -101,20 +101,104 @@ const getMarkerIcon = (vehicle) => {
 };
 
 // Function to create info window content
-const createInfoWindowContent = (vehicle) => `
-  <div class="info-window" style="padding: 8px;">
-    <h3 style="margin: 0 0 8px 0;">${vehicle.display_name}</h3>
-    <p style="margin: 4px 0;">Status: ${
-			vehicle.online ? "Online" : "Offline"
-		}</p>
-    <p style="margin: 4px 0;">Speed: ${
-			vehicle.latest_device_point?.speed || 0
-		} km/h</p>
-    <p style="margin: 4px 0; font-size: 0.9em;">
-      Last Updated: ${new Date(
-				vehicle.latest_device_point?.dt_tracker
-			).toLocaleString()}
-    </p>
+const createInfoWindowContent = (vehicle: Vehicle) => `
+  <div class="info-window" style="
+    padding: 12px 16px;
+    font-family: 'Roboto', sans-serif;
+    min-width: 250px;
+    border-radius: 8px;
+    background: white;
+  ">
+    <div style="
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin-bottom: 12px;
+    ">
+      <span class="material-symbols-outlined" style="
+        color: ${
+					vehicle.online
+						? vehicle.latest_device_point?.speed! > 0
+							? "#4CAF50"
+							: "#FB8C00"
+						: "#EF5350"
+				};
+        font-size: 20px;
+        font-family: 'Material Symbols Outlined', sans-serif;
+      ">
+        ${vehicle.online ? "directions_car" : "directions_car_off"}
+      </span>
+      <span style="
+        font-weight: 500;
+        color: rgba(0, 0, 0, 0.87);
+        font-size: 16px;
+        flex: 1;
+      ">${vehicle.display_name}</span>
+      <div style="
+        background-color: ${
+					vehicle.online ? "rgba(76, 175, 80, 0.12)" : "rgba(239, 83, 80, 0.12)"
+				};
+        color: ${vehicle.online ? "#2e7d32" : "#d32f2f"};
+        padding: 0px 8px;
+        border-radius: 4px;
+        font-size: 12px;
+        font-weight: 600;
+        height: 20px;
+        display: flex;
+        align-items: center;
+        letter-spacing: 0.1px;
+      ">${vehicle.online ? "ONLINE" : "OFFLINE"}</div>
+    </div>
+
+    <div style="
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    ">
+      <div style="
+        display: flex;
+        align-items: center;
+        gap: 4px;
+      ">
+        <span class="material-symbols-outlined" style="
+          color: #1E88E5;
+          font-size: 16px;
+          font-family: 'Material Symbols Outlined', sans-serif;
+        ">speed</span>
+        <span style="
+          color: rgba(0, 0, 0, 0.6);
+          font-size: 14px;
+        ">${vehicle.latest_device_point?.speed?.toFixed(1) || 0} km/h</span>
+      </div>
+
+      <div style="
+        display: flex;
+        align-items: center;
+        gap: 4px;
+      ">
+        <span class="material-symbols-outlined" style="
+          color: #1E88E5;
+          font-size: 16px;
+          font-family: 'Material Symbols Outlined', sans-serif;
+        ">location_on</span>
+        <span style="
+          color: rgba(0, 0, 0, 0.6);
+          font-size: 14px;
+        ">${vehicle.latest_device_point?.lat?.toFixed(
+					4
+				)}, ${vehicle.latest_device_point?.lng?.toFixed(4)}</span>
+      </div>
+      
+      <div style="
+        margin-top: 4px;
+        color: rgba(0, 0, 0, 0.38);
+        font-size: 12px;
+      ">
+        Updated: ${new Date(
+					vehicle.latest_device_point?.dt_tracker!
+				).toLocaleString()}
+      </div>
+    </div>
   </div>
 `;
 
