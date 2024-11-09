@@ -103,7 +103,7 @@ const getMarkerIcon = (vehicle) => {
 // Function to create info window content
 const createInfoWindowContent = (vehicle: Vehicle) => `
   <div class="info-window" style="
-    padding: 12px 16px;
+    padding: 8px 12px; /* Reduced padding */
     font-family: 'Roboto', sans-serif;
     min-width: 250px;
     border-radius: 8px;
@@ -112,10 +112,10 @@ const createInfoWindowContent = (vehicle: Vehicle) => `
     <div style="
       display: flex;
       align-items: center;
-      gap: 8px;
-      margin-bottom: 12px;
+      gap: 6px; /* Slightly reduced gap */
+      margin-bottom: 8px; /* Reduced margin */
     ">
-      <span class="material-symbols-outlined" style="
+      <span class="mdi mdi-${vehicle.online ? "car" : "car-off"}" style="
         color: ${
 					vehicle.online
 						? vehicle.latest_device_point?.speed! > 0
@@ -123,15 +123,12 @@ const createInfoWindowContent = (vehicle: Vehicle) => `
 							: "#FB8C00"
 						: "#EF5350"
 				};
-        font-size: 20px;
-        font-family: 'Material Symbols Outlined', sans-serif;
-      ">
-        ${vehicle.online ? "directions_car" : "directions_car_off"}
-      </span>
+        font-size: 18px; /* Slightly smaller icon */
+      "></span>
       <span style="
         font-weight: 500;
         color: rgba(0, 0, 0, 0.87);
-        font-size: 16px;
+        font-size: 15px; /* Slightly smaller text */
         flex: 1;
       ">${vehicle.display_name}</span>
       <div style="
@@ -139,11 +136,11 @@ const createInfoWindowContent = (vehicle: Vehicle) => `
 					vehicle.online ? "rgba(76, 175, 80, 0.12)" : "rgba(239, 83, 80, 0.12)"
 				};
         color: ${vehicle.online ? "#2e7d32" : "#d32f2f"};
-        padding: 0px 8px;
+        padding: 0px 6px; /* Reduced padding */
         border-radius: 4px;
-        font-size: 12px;
+        font-size: 11px; /* Slightly smaller font */
         font-weight: 600;
-        height: 20px;
+        height: 18px; /* Reduced height */
         display: flex;
         align-items: center;
         letter-spacing: 0.1px;
@@ -153,46 +150,44 @@ const createInfoWindowContent = (vehicle: Vehicle) => `
     <div style="
       display: flex;
       flex-direction: column;
-      gap: 4px;
+      gap: 3px; /* Reduced gap */
     ">
       <div style="
         display: flex;
         align-items: center;
-        gap: 4px;
+        gap: 3px; /* Reduced gap */
       ">
-        <span class="material-symbols-outlined" style="
+        <span class="mdi mdi-speedometer" style="
           color: #1E88E5;
-          font-size: 16px;
-          font-family: 'Material Symbols Outlined', sans-serif;
-        ">speed</span>
+          font-size: 14px; /* Slightly smaller icon */
+        "></span>
         <span style="
           color: rgba(0, 0, 0, 0.6);
-          font-size: 14px;
+          font-size: 13px; /* Slightly smaller text */
         ">${vehicle.latest_device_point?.speed?.toFixed(1) || 0} km/h</span>
       </div>
 
       <div style="
         display: flex;
         align-items: center;
-        gap: 4px;
+        gap: 3px; /* Reduced gap */
       ">
-        <span class="material-symbols-outlined" style="
+        <span class="mdi mdi-map-marker" style="
           color: #1E88E5;
-          font-size: 16px;
-          font-family: 'Material Symbols Outlined', sans-serif;
-        ">location_on</span>
+          font-size: 14px; /* Slightly smaller icon */
+        "></span>
         <span style="
           color: rgba(0, 0, 0, 0.6);
-          font-size: 14px;
+          font-size: 13px; /* Slightly smaller text */
         ">${vehicle.latest_device_point?.lat?.toFixed(
 					4
 				)}, ${vehicle.latest_device_point?.lng?.toFixed(4)}</span>
       </div>
       
       <div style="
-        margin-top: 4px;
+        margin-top: 2px; /* Reduced margin */
         color: rgba(0, 0, 0, 0.38);
-        font-size: 12px;
+        font-size: 11px; /* Slightly smaller font */
       ">
         Updated: ${new Date(
 					vehicle.latest_device_point?.dt_tracker!
@@ -332,5 +327,78 @@ watch([() => props.vehicles, () => props.preferences], updateMarkers, {
 	height: 100%;
 	display: flex;
 	flex-direction: column;
+}
+
+.info-window {
+	padding: 8px 12px; /* Reduced padding */
+	font-family: "Roboto", sans-serif;
+	min-width: 250px;
+	border-radius: 8px;
+	background: white;
+}
+
+.info-header {
+	display: flex;
+	align-items: center;
+	gap: 6px; /* Slightly reduced gap */
+	margin-bottom: 8px; /* Reduced margin */
+}
+
+.info-icon {
+	color: var(--icon-color);
+	font-size: 18px; /* Slightly smaller icon */
+	font-family: "Material Symbols Outlined", sans-serif;
+}
+
+.info-name {
+	font-weight: 500;
+	color: rgba(0, 0, 0, 0.87);
+	font-size: 15px; /* Slightly smaller text */
+	flex: 1;
+	white-space: nowrap;
+	overflow: hidden;
+	text-overflow: ellipsis;
+}
+
+.status-chip {
+	background-color: var(--chip-bg-color);
+	color: var(--chip-text-color);
+	padding: 0px 6px; /* Reduced padding */
+	border-radius: 4px;
+	font-size: 11px; /* Slightly smaller font */
+	font-weight: 600;
+	height: 18px; /* Reduced height */
+	display: flex;
+	align-items: center;
+	letter-spacing: 0.1px;
+}
+
+.info-details {
+	display: flex;
+	flex-direction: column;
+	gap: 3px; /* Reduced gap */
+}
+
+.metric-item {
+	display: flex;
+	align-items: center;
+	gap: 3px; /* Reduced gap */
+}
+
+.metric-icon {
+	color: #1e88e5;
+	font-size: 14px; /* Slightly smaller icon */
+	font-family: "Material Symbols Outlined", sans-serif;
+}
+
+.metric-text {
+	color: rgba(0, 0, 0, 0.6);
+	font-size: 13px; /* Slightly smaller text */
+}
+
+.timestamp {
+	margin-top: 2px; /* Reduced margin */
+	color: rgba(0, 0, 0, 0.38);
+	font-size: 11px; /* Slightly smaller font */
 }
 </style>
