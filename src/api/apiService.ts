@@ -1,6 +1,8 @@
 import axios from "axios";
 
-const API_BASE_URL = "http://localhost:5000";
+const API_BASE_URL = import.meta.env.PROD
+	? "http://gobackend-env.eba-cpaytf92.us-west-1.elasticbeanstalk.com"
+	: "http://localhost:5000";
 
 interface APIError {
 	message: string;

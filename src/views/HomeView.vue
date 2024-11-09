@@ -26,8 +26,22 @@ interface Preference {
 }
 
 // Constants
-const API_BASE_URL = "http://localhost:5000";
-const WS_URL = "ws://localhost:5000/ws";
+const getBaseUrl = () => {
+	return import.meta.env.PROD
+		? "http://gobackend-env.eba-cpaytf92.us-west-1.elasticbeanstalk.com"
+		: "http://localhost:5000";
+};
+
+const getWebSocketUrl = () => {
+	const wsProtocol = window.location.protocol === "https:" ? "wss:" : "ws:";
+	const baseUrl = import.meta.env.PROD
+		? "gobackend-env.eba-cpaytf92.us-west-1.elasticbeanstalk.com"
+		: "localhost:5000";
+	return `${wsProtocol}//${baseUrl}/ws`;
+};
+
+const API_BASE_URL = getBaseUrl();
+const WS_URL = getWebSocketUrl();
 
 // WebSocket connection
 let socket: WebSocket | null = null;
