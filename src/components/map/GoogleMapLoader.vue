@@ -1,5 +1,5 @@
 <script setup>
-import { ref, onMounted } from "vue";
+import { ref, onMounted, computed, onBeforeUnmount, watch } from "vue";
 
 const props = defineProps({
 	mapConfig: {
@@ -15,6 +15,47 @@ const props = defineProps({
 const googleMap = ref(null);
 const google = ref(null);
 const map = ref(null);
+const windowWidth = ref(0);
+
+onMounted(() => {
+	windowWidth.value = window.innerWidth;
+	window.addEventListener("resize", handleWindowResize);
+});
+
+onBeforeUnmount(() => {
+	window.removeEventListener("resize", handleWindowResize);
+	if (map.value) {
+		google.value.maps.event.clearInstanceListeners(map.value);
+		map.value = null;
+	}
+	if (google.value) {
+		google.value = null;
+	}
+});
+
+const handleWindowResize = () => {
+	windowWidth.value = window.innerWidth;
+};
+
+const mapContainerHeight = computed(() => {
+	if (windowWidth.value >= 1920) {
+		return "800px";
+	} else if (windowWidth.value >= 1280 && windowWidth.value < 1920) {
+		return "600px";
+	} else {
+		return "100%";
+	}
+});
+
+const mapHeight = computed(() => {
+	if (windowWidth.value >= 1920) {
+		return "786px";
+	} else if (windowWidth.value >= 1280 && windowWidth.value < 1920) {
+		return "500px";
+	} else {
+		return "360px";
+	}
+});
 
 const initializeMap = async () => {
 	try {
@@ -44,8 +85,8 @@ onMounted(initializeMap);
 </script>
 
 <template>
-	<div>
-		<div ref="googleMap" style="height: 500px; width: 100%"></div>
+	<div :style="{ height: mapContainerHeight }">
+		<div ref="googleMap" :style="{ height: mapHeight, width: '100%' }"></div>
 		<template v-if="google && map">
 			<slot :google="google" :map="map" />
 		</template>

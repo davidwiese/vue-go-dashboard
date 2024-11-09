@@ -350,47 +350,52 @@ const onDrop = async (targetDeviceId: string) => {
 		:model-value="props.show"
 		@update:model-value="$emit('update:show', $event)"
 		max-width="800px"
+		persistent
 	>
-		<v-card>
-			<v-card-title class="d-flex align-center">
-				<v-icon class="mr-2">mdi-cog</v-icon>
-				Vehicle Preferences
-				<v-spacer></v-spacer>
-				<v-btn icon @click="$emit('update:show', false)">
-					<v-icon>mdi-close</v-icon>
-				</v-btn>
+		<v-card class="preferences-dialog">
+			<v-card-title
+				class="preferences-header d-flex align-center justify-center"
+			>
+				<div class="d-flex align-center">
+					<v-icon class="mr-3" color="grey-darken-1">mdi-cog</v-icon>
+					<span class="text-h6">Vehicle Preferences</span>
+				</div>
 			</v-card-title>
 
-			<v-card-subtitle>
-				<div class="d-flex align-center gap-2 my-2">
+			<v-card-subtitle class="action-buttons">
+				<div class="button-container">
 					<v-btn
-						class="mr-2"
 						variant="tonal"
+						color="primary"
 						size="small"
 						prepend-icon="mdi-sort-alphabetical-ascending"
 						@click="sortAlphabetically"
 						:loading="loading"
+						class="action-btn"
 					>
 						Sort A-Z
 					</v-btn>
 
 					<v-btn
-						class="mr-2"
 						variant="tonal"
+						color="success"
 						size="small"
 						prepend-icon="mdi-eye"
 						@click="toggleAllVisibility(true)"
 						:loading="loading"
+						class="action-btn"
 					>
 						Show All
 					</v-btn>
 
 					<v-btn
 						variant="tonal"
+						color="grey-darken-1"
 						size="small"
 						prepend-icon="mdi-eye-off"
 						@click="toggleAllVisibility(false)"
 						:loading="loading"
+						class="action-btn"
 					>
 						Hide All
 					</v-btn>
@@ -399,7 +404,7 @@ const onDrop = async (targetDeviceId: string) => {
 
 			<v-divider></v-divider>
 
-			<v-card-text>
+			<v-card-text class="preferences-content">
 				<v-alert
 					v-if="error"
 					type="error"
@@ -411,7 +416,7 @@ const onDrop = async (targetDeviceId: string) => {
 					{{ error }}
 				</v-alert>
 
-				<v-list v-if="!loading">
+				<v-list v-if="!loading" class="preferences-list">
 					<v-list-item
 						v-for="vehicle in sortedVehicles"
 						:key="vehicle.device_id"
@@ -419,10 +424,11 @@ const onDrop = async (targetDeviceId: string) => {
 						@dragstart="onDragStart(vehicle.device_id)"
 						@dragover="onDragOver"
 						@drop="onDrop(vehicle.device_id)"
-						class="mb-2 preference-item"
+						class="preference-item"
+						rounded="lg"
 					>
 						<template v-slot:prepend>
-							<v-icon color="grey">mdi-drag</v-icon>
+							<v-icon color="grey" size="small">mdi-drag</v-icon>
 						</template>
 
 						<v-list-item-title>
@@ -435,8 +441,10 @@ const onDrop = async (targetDeviceId: string) => {
 									updateDisplayName(vehicle.device_id, $event)
 								"
 								hide-details
-								density="compact"
-								class="mr-4"
+								density="comfortable"
+								variant="outlined"
+								class="name-field"
+								bg-color="grey-lighten-4"
 							></v-text-field>
 						</v-list-item-title>
 
@@ -455,24 +463,31 @@ const onDrop = async (targetDeviceId: string) => {
 								density="comfortable"
 								variant="text"
 								@click="toggleVisibility(vehicle.device_id)"
+								size="small"
 							></v-btn>
 						</template>
 					</v-list-item>
 				</v-list>
 
-				<v-skeleton-loader
-					v-else
-					type="list-item-three-line"
-					:loading="loading"
-				></v-skeleton-loader>
+				<div v-else class="skeleton-loader">
+					<v-skeleton-loader
+						v-for="i in 5"
+						:key="i"
+						type="list-item-three-line"
+						class="mb-2"
+					></v-skeleton-loader>
+				</div>
 			</v-card-text>
 
-			<v-card-actions class="pa-4">
+			<v-divider></v-divider>
+
+			<v-card-actions class="preferences-actions">
 				<v-spacer></v-spacer>
 				<v-btn
 					color="primary"
 					variant="tonal"
 					@click="$emit('update:show', false)"
+					class="done-btn"
 				>
 					Done
 				</v-btn>
@@ -482,38 +497,77 @@ const onDrop = async (targetDeviceId: string) => {
 </template>
 
 <style scoped>
+.preferences-dialog {
+	border-radius: 12px;
+}
+
+.preferences-header {
+	padding: 16px 20px;
+}
+
+.action-buttons {
+	padding: 16px 20px;
+}
+
+.button-container {
+	display: flex;
+	justify-content: center;
+	gap: 16px; /* Increased space between buttons */
+}
+
+.action-btn {
+	text-transform: none;
+	font-weight: 500;
+	letter-spacing: 0.5px;
+	min-width: 120px; /* Ensure consistent button widths */
+}
+
+.preferences-content {
+	padding: 16px 20px;
+}
+
+.preferences-actions {
+	padding: 16px 20px;
+}
+
+.preferences-list {
+	margin: 0 -8px;
+}
+
 .preference-item {
-	cursor: move;
-	transition: background-color 0.2s, transform 0.2s;
+	margin: 4px 0;
+	border-radius: 8px;
+	transition: all 0.2s ease;
 }
 
 .preference-item:hover {
-	background-color: rgba(0, 0, 0, 0.04);
+	background-color: rgba(0, 0, 0, 0.03);
 }
 
 .preference-item:active {
-	transform: scale(0.98);
+	transform: scale(0.99);
 }
 
-.preference-item .v-text-field {
-	width: 100%;
+.name-field {
+	margin: 0 12px;
 }
 
-.preference-item:global(.dragging) {
-	opacity: 0.5;
-	background-color: rgba(0, 0, 0, 0.08);
+.name-field :deep(.v-field__outline) {
+	--v-field-border-opacity: 0.1;
 }
 
-.v-list-item {
-	cursor: move;
-	transition: background-color 0.2s;
+.name-field :deep(.v-field--variant-outlined) {
+	--v-field-border-opacity: 0.12;
 }
 
-.v-list-item:hover {
-	background-color: rgba(0, 0, 0, 0.04);
+.done-btn {
+	min-width: 100px;
+	text-transform: none;
+	font-weight: 500;
+	letter-spacing: 0.5px;
 }
 
-.v-list-item .v-text-field {
-	width: 100%;
+.skeleton-loader {
+	padding: 16px;
 }
 </style>
