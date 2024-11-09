@@ -229,7 +229,7 @@ watch([() => props.vehicles, () => props.preferences], updateMarkers, {
 
 <template>
 	<v-card class="map-container">
-		<v-card-text>
+		<v-card-text class="fill-height pa-0">
 			<GoogleMapLoader :map-config="mapConfig" :api-key="API_KEY">
 				<template #default="{ google: g, map: m }">
 					<div v-if="(google = g) && (map = m)"></div>
@@ -241,6 +241,12 @@ watch([() => props.vehicles, () => props.preferences], updateMarkers, {
 
 <style scoped>
 .map-container {
-	margin-bottom: 1rem;
+	height: 100%;
+}
+
+:deep(.v-card-text) {
+	height: 100%;
+	display: flex;
+	flex-direction: column;
 }
 </style>

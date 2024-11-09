@@ -37,26 +37,6 @@ const handleWindowResize = () => {
 	windowWidth.value = window.innerWidth;
 };
 
-const mapContainerHeight = computed(() => {
-	if (windowWidth.value >= 1920) {
-		return "800px";
-	} else if (windowWidth.value >= 1280 && windowWidth.value < 1920) {
-		return "600px";
-	} else {
-		return "100%";
-	}
-});
-
-const mapHeight = computed(() => {
-	if (windowWidth.value >= 1920) {
-		return "786px";
-	} else if (windowWidth.value >= 1280 && windowWidth.value < 1920) {
-		return "500px";
-	} else {
-		return "360px";
-	}
-});
-
 const initializeMap = async () => {
 	try {
 		// Load the Maps JavaScript API using the script loader
@@ -85,8 +65,8 @@ onMounted(initializeMap);
 </script>
 
 <template>
-	<div :style="{ height: mapContainerHeight }">
-		<div ref="googleMap" :style="{ height: mapHeight, width: '100%' }"></div>
+	<div style="height: 100%">
+		<div ref="googleMap" style="height: 100%; width: 100%"></div>
 		<template v-if="google && map">
 			<slot :google="google" :map="map" />
 		</template>

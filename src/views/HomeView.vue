@@ -142,7 +142,6 @@ onBeforeUnmount(() => {
 	<div class="home-view">
 		<v-container fluid>
 			<v-row class="flex-column flex-md-row">
-				<!-- Map takes full width on mobile, 2/3 on larger screens -->
 				<v-col cols="12" md="8" order="2" order-md="1">
 					<MapView
 						:vehicles="vehicles"
@@ -152,7 +151,6 @@ onBeforeUnmount(() => {
 					/>
 				</v-col>
 
-				<!-- Vehicle list takes full width on mobile, 1/3 on larger screens -->
 				<v-col cols="12" md="4" order="1" order-md="2">
 					<VehicleList
 						:vehicles="vehicles"
@@ -170,7 +168,6 @@ onBeforeUnmount(() => {
 <style scoped>
 .home-view {
 	height: 100%;
-	overflow: hidden;
 }
 
 .map-container {
@@ -182,23 +179,11 @@ onBeforeUnmount(() => {
 
 @media (min-width: 960px) {
 	.map-container {
-		height: 0;
-		padding-bottom: 71%;
-		position: relative;
-		max-height: calc(100vh - 160px);
-	}
-
-	.map-container :deep(.v-card-text) {
-		position: absolute;
-		top: 0;
-		left: 0;
-		right: 0;
-		bottom: 0;
-		height: 100%;
+		height: calc(100vh - 130px);
 	}
 
 	.vehicle-list-container {
-		max-height: calc(100vh - 100px);
+		max-height: calc(100vh - 130px);
 		overflow-y: auto;
 		padding-right: 8px;
 	}
