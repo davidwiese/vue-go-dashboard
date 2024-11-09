@@ -155,6 +155,7 @@ const getDisplayName = (vehicle: Vehicle) => {
 	font-weight: 500;
 	font-size: 0.875rem;
 	border-radius: 4px;
+	margin-left: 12px;
 }
 
 .v-card-text {
