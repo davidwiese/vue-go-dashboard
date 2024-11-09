@@ -103,7 +103,7 @@ const getMarkerIcon = (vehicle) => {
 // Function to create info window content
 const createInfoWindowContent = (vehicle: Vehicle) => `
   <div class="info-window" style="
-    padding: 8px 12px; /* Reduced padding */
+    padding: 8px 12px; /* Reduced overall padding */
     font-family: 'Roboto', sans-serif;
     min-width: 250px;
     border-radius: 8px;
@@ -130,19 +130,23 @@ const createInfoWindowContent = (vehicle: Vehicle) => `
         color: rgba(0, 0, 0, 0.87);
         font-size: 15px; /* Slightly smaller text */
         flex: 1;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
       ">${vehicle.display_name}</span>
-      <div style="
+      <div class="status-chip ${vehicle.online ? "online" : "offline"}" style="
         background-color: ${
 					vehicle.online ? "rgba(76, 175, 80, 0.12)" : "rgba(239, 83, 80, 0.12)"
 				};
         color: ${vehicle.online ? "#2e7d32" : "#d32f2f"};
-        padding: 0px 6px; /* Reduced padding */
-        border-radius: 4px;
+        padding: 4px 8px; /* Increased padding top/bottom and left/right */
+        border-radius: 16px; /* Rounded borders like v-chip */
         font-size: 11px; /* Slightly smaller font */
-        font-weight: 600;
-        height: 18px; /* Reduced height */
+        font-weight: 300; /* Thinner text */
+        height: 20px; /* Slightly increased height */
         display: flex;
         align-items: center;
+        justify-content: center;
         letter-spacing: 0.1px;
       ">${vehicle.online ? "ONLINE" : "OFFLINE"}</div>
     </div>
