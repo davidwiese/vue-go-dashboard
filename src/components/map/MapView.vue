@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, computed, watch } from "vue";
+import { ref, computed, watch, onBeforeUnmount } from "vue";
 import GoogleMapLoader from "./GoogleMapLoader.vue";
 
 interface Vehicle {
@@ -307,6 +307,19 @@ const updateMarkers = () => {
 // Consolidated watcher for vehicles and preferences
 watch([() => props.vehicles, () => props.preferences], updateMarkers, {
 	deep: true,
+});
+
+onBeforeUnmount(() => {
+	// Clean up markers
+	Object.values(markers.value).forEach((marker) => {
+		if (marker) {
+			marker.setMap(null);
+			if (marker.infoWindow) {
+				marker.infoWindow.close();
+			}
+		}
+	});
+	markers.value = {};
 });
 </script>
 
