@@ -350,6 +350,7 @@ const onDrop = async (targetDeviceId: string) => {
 		:model-value="props.show"
 		@update:model-value="$emit('update:show', $event)"
 		max-width="800px"
+		persistent
 	>
 		<v-card class="preferences-dialog">
 			<v-card-title
@@ -468,11 +469,14 @@ const onDrop = async (targetDeviceId: string) => {
 					</v-list-item>
 				</v-list>
 
-				<v-skeleton-loader
-					v-else
-					type="list-item-three-line"
-					:loading="loading"
-				></v-skeleton-loader>
+				<div v-else class="skeleton-loader">
+					<v-skeleton-loader
+						v-for="i in 5"
+						:key="i"
+						type="list-item-three-line"
+						class="mb-2"
+					></v-skeleton-loader>
+				</div>
 			</v-card-text>
 
 			<v-divider></v-divider>
@@ -561,5 +565,9 @@ const onDrop = async (targetDeviceId: string) => {
 	text-transform: none;
 	font-weight: 500;
 	letter-spacing: 0.5px;
+}
+
+.skeleton-loader {
+	padding: 16px;
 }
 </style>
