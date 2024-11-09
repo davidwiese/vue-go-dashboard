@@ -144,6 +144,7 @@ const getDisplayName = (vehicle: Vehicle) => {
 .title-icon {
 	font-size: 1.5rem;
 	color: #1e88e5;
+	margin-left: 12px;
 }
 
 .settings-btn {
