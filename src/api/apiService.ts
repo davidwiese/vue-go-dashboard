@@ -2,6 +2,11 @@ import axios from "axios";
 
 const API_BASE_URL = "http://localhost:5000";
 
+interface APIError {
+	message: string;
+	status?: number;
+}
+
 interface PreferencePayload {
 	device_id: string;
 	client_id: string;
@@ -17,8 +22,13 @@ export const getPreferences = async (clientId: string) => {
 		});
 		return response.data;
 	} catch (error) {
-		console.error("Error fetching preferences:", error);
-		throw error;
+		if (axios.isAxiosError(error)) {
+			throw {
+				message: error.response?.data || "Failed to fetch preferences",
+				status: error.response?.status,
+			};
+		}
+		throw { message: "Unknown error occurred" };
 	}
 };
 
@@ -30,8 +40,13 @@ export const savePreference = async (preference: PreferencePayload) => {
 		);
 		return response.data;
 	} catch (error) {
-		console.error("Error saving preference:", error);
-		throw error;
+		if (axios.isAxiosError(error)) {
+			throw {
+				message: error.response?.data || "Failed to save preference",
+				status: error.response?.status,
+			};
+		}
+		throw { message: "Unknown error occurred" };
 	}
 };
 
@@ -46,7 +61,12 @@ export const savePreferencesBatch = async (
 		);
 		return response.data;
 	} catch (error) {
-		console.error("Error saving preferences batch:", error);
-		throw error;
+		if (axios.isAxiosError(error)) {
+			throw {
+				message: error.response?.data || "Failed to save preferences",
+				status: error.response?.status,
+			};
+		}
+		throw { message: "Unknown error occurred" };
 	}
 };
