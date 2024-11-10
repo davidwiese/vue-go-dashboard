@@ -2,6 +2,7 @@
 import { ref, computed } from "vue";
 import { format } from "date-fns";
 import LoadingSpinner from "../common/LoadingSpinner.vue";
+import axios from "axios";
 
 interface Vehicle {
 	device_id: string;
@@ -19,6 +20,10 @@ interface Props {
 	modelValue: boolean; // for v-model
 	vehicle: Vehicle | null;
 }
+
+const API_BASE_URL = import.meta.env.PROD
+	? "http://gobackend-env.eba-cpaytf92.us-west-1.elasticbeanstalk.com"
+	: "http://localhost:5000";
 
 const props = defineProps<Props>();
 const emit = defineEmits(["update:modelValue"]);
@@ -72,12 +77,10 @@ const generateReport = async () => {
 		);
 		if (!timeframe) return;
 
-		const response = await fetch("/api/report/generate", {
+		const response = await axios({
 			method: "POST",
-			headers: {
-				"Content-Type": "application/json",
-			},
-			body: JSON.stringify({
+			url: `${API_BASE_URL}/report/generate`,
+			data: {
 				report_spec: {
 					user_report_name: `${props.vehicle.display_name} Activity Report`,
 					report_type: "drives_and_stops",
@@ -103,15 +106,12 @@ const generateReport = async () => {
 						use_xlsx_separated_format: false,
 					},
 				},
-			}),
+			},
+			responseType: "blob", // Important for handling PDF response
 		});
 
-		if (!response.ok) {
-			const errorText = await response.text();
-			throw new Error(errorText || "Failed to generate report");
-		}
-
-		const blob = await response.blob();
+		// Create and trigger download
+		const blob = new Blob([response.data], { type: "application/pdf" });
 		const url = window.URL.createObjectURL(blob);
 		const a = document.createElement("a");
 		a.href = url;
@@ -124,9 +124,51 @@ const generateReport = async () => {
 		closeDialog();
 	} catch (error) {
 		console.error("Error generating report:", error);
-		errorMessage.value =
-			error instanceof Error ? error.message : "An unexpected error occurred";
-		showError.value = true;
+		let errorMsg = "An unexpected error occurred";
+
+		// Better error handling for axios errors
+		if (axios.isAxiosError(error)) {
+			if (error.response) {
+				// The request was made and the server responded with a status code
+				// that falls out of the range of 2xx
+				const reader = new FileReader();
+				reader.onload = () => {
+					try {
+						const errorData = JSON.parse(reader.result as string);
+						errorMessage.value =
+							errorData.error || errorData.message || errorMsg;
+					} catch {
+						errorMessage.value = error.response?.statusText || errorMsg;
+					}
+					showError.value = true;
+				};
+				reader.onerror = () => {
+					errorMessage.value = errorMsg;
+					showError.value = true;
+				};
+				// Read the error response as text
+				if (error.response.data instanceof Blob) {
+					reader.readAsText(error.response.data);
+				} else {
+					errorMessage.value =
+						error.response.data?.error ||
+						error.response.data?.message ||
+						errorMsg;
+					showError.value = true;
+				}
+			} else if (error.request) {
+				// The request was made but no response was received
+				errorMessage.value = "No response received from server";
+				showError.value = true;
+			} else {
+				// Something happened in setting up the request
+				errorMessage.value = error.message || errorMsg;
+				showError.value = true;
+			}
+		} else {
+			errorMessage.value = errorMsg;
+			showError.value = true;
+		}
 	} finally {
 		isGeneratingReport.value = false;
 	}
