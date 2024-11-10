@@ -35,7 +35,7 @@ const getBaseUrl = () => {
 const getWebSocketUrl = () => {
 	const wsProtocol = window.location.protocol === "https:" ? "wss:" : "ws:";
 	const baseUrl = import.meta.env.PROD
-		? "gobackend-env.eba-cpaytf92.us-west-1.elasticbeanstalk.com"
+		? "api.trackifyfleet.pro"
 		: "localhost:5000";
 	return `${wsProtocol}//${baseUrl}/ws`;
 };
