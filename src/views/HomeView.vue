@@ -28,7 +28,7 @@ interface Preference {
 // Constants
 const getBaseUrl = () => {
 	return import.meta.env.PROD
-		? "https://gobackend-env.eba-cpaytf92.us-west-1.elasticbeanstalk.com"
+		? "http://gobackend-env.eba-cpaytf92.us-west-1.elasticbeanstalk.com"
 		: "http://localhost:5000";
 };
 
