@@ -22,7 +22,7 @@ interface Props {
 }
 
 const API_BASE_URL = import.meta.env.PROD
-	? "https://api.trackifyfleet.pro"
+	? "http://gobackend-env.eba-cpaytf92.us-west-1.elasticbeanstalk.com"
 	: "http://localhost:5000";
 
 const props = defineProps<Props>();
