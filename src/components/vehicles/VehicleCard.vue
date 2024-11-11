@@ -1,6 +1,10 @@
+<!-- VehicleCard.vue represents a single vehicle's display card
+It handles status visualization and provides interaction points for report generation -->
+
 <script setup lang="ts">
 import StatusChip from "@/components/common/StatusChip.vue";
 
+// Interfaces
 interface Vehicle {
 	device_id: string;
 	display_name: string;
@@ -18,15 +22,18 @@ interface Props {
 	displayName: string;
 }
 
+// Component setup
 const props = defineProps<Props>();
 const emit = defineEmits(["click", "generateReport"]);
 
+// Format vehicle speed with consistent decimal places
 const formatSpeed = () => {
 	return (
 		props.vehicle.latest_device_point?.speed?.toFixed(1).toString() || "N/A"
 	);
 };
 
+// Format coordinates to locale-specific string
 const getVehicleLocation = () => {
 	const lat = props.vehicle.latest_device_point?.lat;
 	const lng = props.vehicle.latest_device_point?.lng;
@@ -34,11 +41,13 @@ const getVehicleLocation = () => {
 	return `${lat.toFixed(4)}, ${lng.toFixed(4)}`;
 };
 
+// Format timestamp to locale-specific string
 const formatLastUpdate = (timestamp?: string) => {
 	if (!timestamp) return "N/A";
 	return new Date(timestamp).toLocaleString();
 };
 
+// Format coordinates with responsive precision
 const formatLocation = () => {
 	const lat = props.vehicle.latest_device_point?.lat;
 	const lng = props.vehicle.latest_device_point?.lng;
@@ -54,10 +63,11 @@ const formatLocation = () => {
 
 <template>
 	<v-card :class="['vehicle-card', { offline: !vehicle.online }]" elevation="2">
-		<!-- Main card content (clickable) -->
+		<!-- Main card section (clickable for map focus) -->
 		<div class="card-content" @click="emit('click', vehicle)">
 			<div class="header">
 				<div class="title-section">
+					<!-- Dynamic icon and color based on vehicle state -->
 					<v-icon
 						:color="
 							vehicle.online
@@ -72,6 +82,7 @@ const formatLocation = () => {
 						{{ vehicle.online ? "mdi-car-side" : "mdi-car-off" }}
 					</v-icon>
 					<span class="vehicle-name">{{ displayName }}</span>
+					<!-- Online/Offline status indicator -->
 					<StatusChip
 						:label="vehicle.online ? 'ONLINE' : 'OFFLINE'"
 						:color="vehicle.online ? 'success' : 'error'"
@@ -81,17 +92,21 @@ const formatLocation = () => {
 				</div>
 			</div>
 
+			<!-- Vehicle metrics display -->
 			<div class="details">
 				<div class="metrics">
+					<!-- Speed indicator -->
 					<div class="metric-item">
 						<v-icon size="x-small" color="primary">mdi-speedometer</v-icon>
 						<span class="detail-text">{{ formatSpeed() }} km/h</span>
 					</div>
+					<!-- Location coordinates -->
 					<div class="metric-item">
 						<v-icon size="x-small" color="primary">mdi-map-marker</v-icon>
 						<span class="detail-text">{{ formatLocation() }}</span>
 					</div>
 				</div>
+				<!-- Last update timestamp -->
 				<div class="timestamp">
 					Updated:
 					{{ formatLastUpdate(vehicle.latest_device_point?.dt_tracker) }}
@@ -99,7 +114,7 @@ const formatLocation = () => {
 			</div>
 		</div>
 
-		<!-- Footer with report button -->
+		<!-- Report generation section -->
 		<v-divider></v-divider>
 		<div class="card-footer" @click.stop>
 			<v-btn

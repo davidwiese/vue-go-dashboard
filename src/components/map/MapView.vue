@@ -1,7 +1,11 @@
+<!-- MapView.vue manages the interactive map display
+It handles vehicle markers, info windows, and map interactions -->
+
 <script setup lang="ts">
 import { ref, computed, watch, onBeforeUnmount } from "vue";
 import GoogleMapLoader from "./GoogleMapLoader.vue";
 
+// Interfaces
 interface Vehicle {
 	device_id: string;
 	display_name: string;
@@ -31,6 +35,19 @@ const props = defineProps<{
 	selectedVehicleId?: string;
 }>();
 
+// Map configuration
+const mapConfig = computed(() => ({
+	center: { lat: 36.7783, lng: -119.4179 },
+	zoom: 6,
+}));
+
+const API_KEY = import.meta.env.VITE_GOOGLE_MAPS_API_KEY;
+
+// Map and markers references
+const map = ref<any>(null);
+const google = ref<any>(null);
+const markers = ref<Record<string, any>>({});
+
 // Function to handle vehicle selection
 const handleVehicleSelection = (deviceId: string) => {
 	if (!google.value || !map.value) return;
@@ -42,7 +59,7 @@ const handleVehicleSelection = (deviceId: string) => {
 			lat: marker.getPosition().lat(),
 			lng: marker.getPosition().lng(),
 		});
-		map.value.setZoom(15); // Zoom in closer to the vehicle
+		map.value.setZoom(15);
 
 		// Find all info windows and close them
 		Object.values(markers.value).forEach((m) => {
@@ -67,18 +84,6 @@ watch(
 		}
 	}
 );
-
-const mapConfig = computed(() => ({
-	center: { lat: 36.7783, lng: -119.4179 },
-	zoom: 6,
-}));
-
-const API_KEY = import.meta.env.VITE_GOOGLE_MAPS_API_KEY;
-
-// Map and markers references
-const map = ref<any>(null);
-const google = ref<any>(null);
-const markers = ref<Record<string, any>>({});
 
 // Helper function to get marker icon
 const getMarkerIcon = (vehicle) => {
@@ -201,7 +206,7 @@ const createInfoWindowContent = (vehicle: Vehicle) => `
   </div>
 `;
 
-// Function to create or update a marker
+// Helper function to create/update map markers for vehicles
 const createOrUpdateMarker = (vehicle) => {
 	if (!google.value || !map.value) return;
 
@@ -234,6 +239,7 @@ const createOrUpdateMarker = (vehicle) => {
 				visible: !isHidden,
 			});
 
+			// Create and attach info window
 			const infoWindow = new google.value.maps.InfoWindow({
 				content: createInfoWindowContent(vehicle),
 			});
@@ -241,6 +247,7 @@ const createOrUpdateMarker = (vehicle) => {
 			// Store infoWindow with marker
 			marker.infoWindow = infoWindow;
 
+			// Set up click handler to show info window
 			marker.addListener("click", () => {
 				// Close all other info windows
 				Object.values(markers.value).forEach((m) => {
@@ -261,7 +268,7 @@ const createOrUpdateMarker = (vehicle) => {
 	}
 };
 
-// Function to remove a marker with proper cleanup
+// Remove marker and clean up resources
 const removeMarker = (deviceId) => {
 	const marker = markers.value[deviceId];
 	if (marker) {
@@ -275,14 +282,15 @@ const removeMarker = (deviceId) => {
 	}
 };
 
-// Unified function to update markers
+// Update all markers based on current vehicles and preferences
 const updateMarkers = () => {
 	if (!google.value || !map.value) return;
 
 	try {
+		// Track current vehicle IDs
 		const currentDeviceIds = new Set(props.vehicles.map((v) => v.device_id));
 
-		// Remove obsolete markers
+		// Remove markers for vehicles no longer in list
 		Object.keys(markers.value).forEach((deviceId) => {
 			if (!currentDeviceIds.has(deviceId)) {
 				removeMarker(deviceId);

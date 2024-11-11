@@ -1,3 +1,6 @@
+<!-- VehiclePreferences.vue manages vehicle display preferences with optimistic updates
+Handles sorting, visibility, and name customization with error recovery -->
+
 <script setup lang="ts">
 import { ref, reactive, watch, computed } from "vue";
 import { getClientId } from "@/utils/clientId";
@@ -6,6 +9,7 @@ import {
 	savePreferencesBatch,
 } from "@/api/apiService";
 
+// Interfaces
 interface Vehicle {
 	device_id: string;
 	display_name: string;
@@ -38,15 +42,18 @@ interface Props {
 	show: boolean;
 }
 
+// Component setup
 const props = defineProps<Props>();
 const emit = defineEmits(["update:show", "preferences-updated"]);
+
+// State
 const loading = ref(false);
 const error = ref("");
 
 // Create a local copy of preferences for cancellation support
 const localPreferences = reactive<Record<string, Preference>>({});
 
-// Computed property for sorted vehicles
+// Computed property for sorted vehicles display
 const sortedVehicles = computed(() => {
 	return [...props.vehicles].sort((a, b) => {
 		const aOrder = localPreferences[a.device_id]?.sortOrder || 0;
@@ -55,7 +62,7 @@ const sortedVehicles = computed(() => {
 	});
 });
 
-// Watch for changes in props.show
+// Watchers for dialog state synchronization
 watch(
 	() => props.show,
 	(isShown) => {
@@ -96,7 +103,9 @@ const applyChanges = () => {
 	);
 };
 
-// Save preferences for a vehicle with optimistic update and error handling
+// Core update functions with optimistic updates
+
+// Save single preference with rollback on error
 const savePreference = async (deviceId: string) => {
 	const pref = localPreferences[deviceId];
 	if (!pref) return;
@@ -120,7 +129,7 @@ const savePreference = async (deviceId: string) => {
 	} catch (err) {
 		console.error("Error saving preference:", err);
 		error.value = "Failed to save preference";
-		// Revert to original preference
+		// Rollback on error
 		props.preferences[deviceId] = originalPref;
 	}
 };

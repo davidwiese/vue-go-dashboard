@@ -1,14 +1,19 @@
+<!-- ReportDialog.vue handles the report generation interface and process
+It manages timeframe selection, API interaction, and download handling -->
+
 <script setup lang="ts">
 import { ref, computed } from "vue";
 import { format } from "date-fns";
 import LoadingSpinner from "../common/LoadingSpinner.vue";
 import axios from "axios";
 
+// Interfaces
 interface Vehicle {
 	device_id: string;
 	display_name: string;
 }
 
+// TimeFrame interface defines available report periods
 interface TimeFrame {
 	label: string;
 	value: string;
@@ -17,7 +22,7 @@ interface TimeFrame {
 }
 
 interface Props {
-	modelValue: boolean; // for v-model
+	modelValue: boolean; // for v-model dialog visibility
 	vehicle: Vehicle | null;
 }
 
@@ -25,14 +30,17 @@ const API_BASE_URL = import.meta.env.PROD
 	? "https://trackifyfleet.pro/api"
 	: "http://localhost:5000";
 
+// Component setup
 const props = defineProps<Props>();
 const emit = defineEmits(["update:modelValue"]);
 
+// State
 const selectedTimeframe = ref("24h");
 const isGeneratingReport = ref(false);
 const errorMessage = ref("");
 const showError = ref(false);
 
+// Compute available timeframe options
 const timeframes = computed<TimeFrame[]>(() => {
 	const now = new Date();
 	return [
@@ -57,6 +65,7 @@ const timeframes = computed<TimeFrame[]>(() => {
 	];
 });
 
+// Reset dialog state on close
 const closeDialog = () => {
 	emit("update:modelValue", false);
 	errorMessage.value = "";
@@ -64,6 +73,7 @@ const closeDialog = () => {
 	selectedTimeframe.value = "24h";
 };
 
+// Main report generation function
 const generateReport = async () => {
 	if (!props.vehicle) return;
 
@@ -72,11 +82,13 @@ const generateReport = async () => {
 		errorMessage.value = "";
 		showError.value = false;
 
+		// Get selected timeframe
 		const timeframe = timeframes.value.find(
 			(t) => t.value === selectedTimeframe.value
 		);
 		if (!timeframe) return;
 
+		// Make API request with report config
 		const response = await axios({
 			method: "POST",
 			url: `${API_BASE_URL}/report/generate`,
@@ -107,10 +119,10 @@ const generateReport = async () => {
 					},
 				},
 			},
-			responseType: "blob", // Important for handling PDF response
+			responseType: "blob", // For PDF download
 		});
 
-		// Create and trigger download
+		// Handle successful response with file download
 		const blob = new Blob([response.data], { type: "application/pdf" });
 		const url = window.URL.createObjectURL(blob);
 		const a = document.createElement("a");

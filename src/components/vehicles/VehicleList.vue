@@ -1,3 +1,6 @@
+<!-- VehicleList.vue manages the display and organization of vehicle cards
+It handles vehicle filtering, sorting, and interactions with preferences and reports -->
+
 <script setup lang="ts">
 import { ref, computed } from "vue";
 import VehicleCard from "./VehicleCard.vue";
@@ -29,6 +32,7 @@ interface Props {
 	preferences: Record<string, Preference>;
 }
 
+// State Management
 const props = defineProps<Props>();
 const emit = defineEmits(["preferences-updated", "vehicle-selected"]);
 const showPreferences = ref(false);
@@ -36,6 +40,10 @@ const showReportDialog = ref(false);
 const selectedVehicle = ref<Vehicle | null>(null);
 
 // Computed properties
+
+// displayedVehicles filters and sorts vehicles based on preferences
+// - Removes hidden vehicles
+// - Sorts by preference sortOrder
 const displayedVehicles = computed(() => {
 	return [...props.vehicles]
 		.filter((vehicle) => !props.preferences?.[vehicle.device_id]?.isHidden)
@@ -46,24 +54,31 @@ const displayedVehicles = computed(() => {
 		});
 });
 
+// onlineCount tracks number of visible online vehicles
+// Used for status display in header
 const onlineCount = computed(() => {
 	return displayedVehicles.value.filter((v) => v.online).length;
 });
 
 // Event handlers
+
+// Emits selection event to parent (HomeView) for map centering
 const handleVehicleClick = (vehicle: Vehicle) => {
 	emit("vehicle-selected", vehicle.device_id);
 };
 
+// Opens report dialog for selected vehicle
 const handleGenerateReport = (vehicle: Vehicle) => {
 	selectedVehicle.value = vehicle;
 	showReportDialog.value = true;
 };
 
+// Propagates preference updates to parent for persistence
 const handlePreferencesUpdated = () => {
 	emit("preferences-updated");
 };
 
+// Helper function to get display name with preference override
 const getDisplayName = (vehicle: Vehicle) => {
 	return (
 		props.preferences?.[vehicle.device_id]?.displayName || vehicle.display_name
@@ -73,8 +88,10 @@ const getDisplayName = (vehicle: Vehicle) => {
 
 <template>
 	<v-card class="vehicle-list">
+		<!-- Header with status and preferences access -->
 		<v-card-title class="title-bar">
 			<v-icon class="title-icon">mdi-car-multiple</v-icon>
+			<!-- Dynamic status chip showing online vehicle count -->
 			<StatusChip
 				:label="`${onlineCount}/${displayedVehicles.length} Online`"
 				:color="
@@ -82,6 +99,7 @@ const getDisplayName = (vehicle: Vehicle) => {
 				"
 				class="status-chip"
 			/>
+			<!-- Preferences dialog trigger -->
 			<v-btn
 				icon
 				variant="text"
@@ -95,6 +113,7 @@ const getDisplayName = (vehicle: Vehicle) => {
 
 		<v-divider></v-divider>
 
+		<!-- Vehicle grid with responsive layout -->
 		<v-card-text>
 			<div class="vehicle-grid">
 				<VehicleCard
@@ -109,6 +128,7 @@ const getDisplayName = (vehicle: Vehicle) => {
 			</div>
 		</v-card-text>
 
+		<!-- Modals for preferences and reports -->
 		<VehiclePreferences
 			:show="showPreferences"
 			:vehicles="props.vehicles"

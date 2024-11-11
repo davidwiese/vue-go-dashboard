@@ -1,3 +1,6 @@
+<!-- HomeView.vue is the main dashboard component -->
+<!-- It manages vehicle data, WebSocket connections, and user preferences -->
+
 <script setup lang="ts">
 import { reactive, ref, onMounted, onBeforeUnmount } from "vue";
 import axios from "axios";
@@ -45,7 +48,9 @@ const WS_URL = getWebSocketUrl();
 // WebSocket connection
 let socket: WebSocket | null = null;
 
-// State
+// Reactive state
+// ref() is similar to React's useState for primitive values
+// reactive() is similar to React's useState for objects
 const vehicles = ref<Vehicle[]>([]);
 const preferences = reactive<Record<string, Preference>>({});
 const selectedVehicleId = ref<string | undefined>(undefined);
@@ -83,21 +88,23 @@ const loadPreferences = async () => {
 	}
 };
 
-// Handle preference updates
+// Event handlers - similar to React's callback props
 const handlePreferencesUpdated = async () => {
 	await loadPreferences();
 };
 
-// WebSocket setup
+// WebSocket setup - similar to React's useEffect cleanup pattern
 const initWebSocket = () => {
 	const clientId = getClientId();
 	socket = new WebSocket(`${WS_URL}?client_id=${clientId}`);
 
 	socket.onmessage = (event) => {
+		// Update reactive state - similar to React's setState
 		const vehicleUpdates = JSON.parse(event.data) as Vehicle[];
 		vehicles.value = vehicleUpdates;
 	};
 
+	// WebSocket event handlers
 	socket.onerror = (error) => {
 		console.error("WebSocket error:", error);
 	};
@@ -128,8 +135,10 @@ const fetchVehicles = async () => {
 	}
 };
 
+// Template refs - similar to React's useRef for DOM elements
 const mapView = ref<InstanceType<typeof MapView> | null>(null);
 
+// Event handlers for child components
 const handleVehicleSelected = (deviceId: string) => {
 	selectedVehicleId.value = deviceId;
 
@@ -148,13 +157,14 @@ const scrollToMap = () => {
 	}
 };
 
-// Lifecycle hooks
+// Lifecycle hooks similar to React's useEffect
 onMounted(async () => {
 	await fetchVehicles();
 	initWebSocket();
 	await loadPreferences();
 });
 
+// Cleanup
 onBeforeUnmount(() => {
 	if (socket) {
 		socket.close();
