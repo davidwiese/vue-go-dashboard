@@ -133,8 +133,24 @@ const fetchVehicles = async () => {
 	}
 };
 
+const mapView = ref<InstanceType<typeof MapView> | null>(null);
+
 const handleVehicleSelected = (deviceId: string) => {
 	selectedVehicleId.value = deviceId;
+
+	// Check screen width to determine if scrolling is needed
+	if (window.innerWidth < 960) {
+		// Adjust breakpoint as needed
+		scrollToMap();
+	}
+};
+
+const scrollToMap = () => {
+	if (mapView.value) {
+		// Access the DOM element of the map container
+		const mapElement = mapView.value.$el as HTMLElement;
+		mapElement.scrollIntoView({ behavior: "smooth" });
+	}
 };
 
 // Lifecycle hooks
@@ -157,6 +173,7 @@ onBeforeUnmount(() => {
 			<v-row class="flex-column flex-md-row">
 				<v-col cols="12" md="8" order="2" order-md="1">
 					<MapView
+						ref="mapView"
 						:vehicles="vehicles"
 						:preferences="preferences"
 						:selected-vehicle-id="selectedVehicleId"
