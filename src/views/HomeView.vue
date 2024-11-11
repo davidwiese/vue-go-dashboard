@@ -28,16 +28,15 @@ interface Preference {
 // Constants
 const getBaseUrl = () => {
 	return import.meta.env.PROD
-		? "http://gobackend-env.eba-cpaytf92.us-west-1.elasticbeanstalk.com"
+		? "https://trackifyfleet.pro/api"
 		: "http://localhost:5000";
 };
 
 const getWebSocketUrl = () => {
-	const wsProtocol = window.location.protocol === "https:" ? "wss:" : "ws:";
 	const baseUrl = import.meta.env.PROD
 		? "gobackend-env.eba-cpaytf92.us-west-1.elasticbeanstalk.com"
 		: "localhost:5000";
-	return `${wsProtocol}//${baseUrl}/ws`;
+	return `ws://${baseUrl}/ws`;
 };
 
 const API_BASE_URL = getBaseUrl();
