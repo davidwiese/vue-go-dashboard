@@ -7,7 +7,7 @@
 		<v-app-bar app color="primary">
 			<v-app-bar-title class="d-flex align-center justify-center text-h5">
 				<v-icon class="mr-2">mdi-truck</v-icon>
-				<span>Trackify</span>
+				<span>Trackify Fleet</span>
 			</v-app-bar-title>
 		</v-app-bar>
 
