@@ -176,8 +176,8 @@ const formatLocation = () => {
 .metrics {
 	display: flex;
 	flex-direction: column;
-	gap: 2px !important; /* Force consistent tiny gap */
-	margin: 0; /* Remove any potential margin */
+	gap: 2px !important;
+	margin: 0;
 }
 
 .metric-item {
@@ -185,8 +185,8 @@ const formatLocation = () => {
 	align-items: center;
 	gap: 4px;
 	white-space: nowrap;
-	line-height: 1.2; /* Control line height explicitly */
-	min-height: 20px; /* Set consistent height */
+	line-height: 1.2;
+	min-height: 20px;
 }
 
 .detail-text {
@@ -195,10 +195,10 @@ const formatLocation = () => {
 }
 
 .timestamp {
-	font-size: 0.7rem; /* Slightly smaller */
+	font-size: 0.7rem;
 	color: rgba(0, 0, 0, 0.38);
 	white-space: nowrap;
-	padding-right: 16px; /* More padding on the right */
+	padding-right: 16px;
 	margin-top: 4px;
 }
 

@@ -103,7 +103,7 @@ const getMarkerIcon = (vehicle) => {
 // Function to create info window content
 const createInfoWindowContent = (vehicle: Vehicle) => `
   <div class="info-window" style="
-    padding: 8px 12px; /* Reduced overall padding */
+    padding: 8px 12px;
     font-family: 'Roboto', sans-serif;
     min-width: 250px;
     border-radius: 8px;
@@ -112,8 +112,8 @@ const createInfoWindowContent = (vehicle: Vehicle) => `
     <div style="
       display: flex;
       align-items: center;
-      gap: 6px; /* Slightly reduced gap */
-      margin-bottom: 8px; /* Reduced margin */
+      gap: 6px;
+      margin-bottom: 8px;
     ">
       <span class="mdi mdi-${vehicle.online ? "car" : "car-off"}" style="
         color: ${
@@ -123,12 +123,12 @@ const createInfoWindowContent = (vehicle: Vehicle) => `
 							: "#FB8C00"
 						: "#EF5350"
 				};
-        font-size: 18px; /* Slightly smaller icon */
+        font-size: 18px;
       "></span>
       <span style="
         font-weight: 500;
         color: rgba(0, 0, 0, 0.87);
-        font-size: 15px; /* Slightly smaller text */
+        font-size: 15px;
         flex: 1;
         white-space: nowrap;
         overflow: hidden;
@@ -139,11 +139,11 @@ const createInfoWindowContent = (vehicle: Vehicle) => `
 					vehicle.online ? "rgba(76, 175, 80, 0.12)" : "rgba(239, 83, 80, 0.12)"
 				};
         color: ${vehicle.online ? "#2e7d32" : "#d32f2f"};
-        padding: 4px 8px; /* Increased padding top/bottom and left/right */
-        border-radius: 16px; /* Rounded borders like v-chip */
-        font-size: 11px; /* Slightly smaller font */
-        font-weight: 300; /* Thinner text */
-        height: 20px; /* Slightly increased height */
+        padding: 4px 8px;
+        border-radius: 16px;
+        font-size: 11px;
+        font-weight: 300;
+        height: 20px;
         display: flex;
         align-items: center;
         justify-content: center;
@@ -154,44 +154,44 @@ const createInfoWindowContent = (vehicle: Vehicle) => `
     <div style="
       display: flex;
       flex-direction: column;
-      gap: 3px; /* Reduced gap */
+      gap: 3px;
     ">
       <div style="
         display: flex;
         align-items: center;
-        gap: 3px; /* Reduced gap */
+        gap: 3px;
       ">
         <span class="mdi mdi-speedometer" style="
           color: #1E88E5;
-          font-size: 14px; /* Slightly smaller icon */
+          font-size: 14px;
         "></span>
         <span style="
           color: rgba(0, 0, 0, 0.6);
-          font-size: 13px; /* Slightly smaller text */
+          font-size: 13px;
         ">${vehicle.latest_device_point?.speed?.toFixed(1) || 0} km/h</span>
       </div>
 
       <div style="
         display: flex;
         align-items: center;
-        gap: 3px; /* Reduced gap */
+        gap: 3px;
       ">
         <span class="mdi mdi-map-marker" style="
           color: #1E88E5;
-          font-size: 14px; /* Slightly smaller icon */
+          font-size: 14px;
         "></span>
         <span style="
           color: rgba(0, 0, 0, 0.6);
-          font-size: 13px; /* Slightly smaller text */
+          font-size: 13px;
         ">${vehicle.latest_device_point?.lat?.toFixed(
 					4
 				)}, ${vehicle.latest_device_point?.lng?.toFixed(4)}</span>
       </div>
       
       <div style="
-        margin-top: 2px; /* Reduced margin */
+        margin-top: 2px;
         color: rgba(0, 0, 0, 0.38);
-        font-size: 11px; /* Slightly smaller font */
+        font-size: 11px;
       ">
         Updated: ${new Date(
 					vehicle.latest_device_point?.dt_tracker!
@@ -347,7 +347,7 @@ onBeforeUnmount(() => {
 }
 
 .info-window {
-	padding: 8px 12px; /* Reduced padding */
+	padding: 8px 12px;
 	font-family: "Roboto", sans-serif;
 	min-width: 250px;
 	border-radius: 8px;
@@ -357,20 +357,20 @@ onBeforeUnmount(() => {
 .info-header {
 	display: flex;
 	align-items: center;
-	gap: 6px; /* Slightly reduced gap */
-	margin-bottom: 8px; /* Reduced margin */
+	gap: 6px;
+	margin-bottom: 8px;
 }
 
 .info-icon {
 	color: var(--icon-color);
-	font-size: 18px; /* Slightly smaller icon */
+	font-size: 18px;
 	font-family: "Material Symbols Outlined", sans-serif;
 }
 
 .info-name {
 	font-weight: 500;
 	color: rgba(0, 0, 0, 0.87);
-	font-size: 15px; /* Slightly smaller text */
+	font-size: 15px;
 	flex: 1;
 	white-space: nowrap;
 	overflow: hidden;
@@ -380,11 +380,11 @@ onBeforeUnmount(() => {
 .status-chip {
 	background-color: var(--chip-bg-color);
 	color: var(--chip-text-color);
-	padding: 0px 6px; /* Reduced padding */
+	padding: 0px 6px;
 	border-radius: 4px;
-	font-size: 11px; /* Slightly smaller font */
+	font-size: 11px;
 	font-weight: 600;
-	height: 18px; /* Reduced height */
+	height: 18px;
 	display: flex;
 	align-items: center;
 	letter-spacing: 0.1px;
@@ -393,29 +393,29 @@ onBeforeUnmount(() => {
 .info-details {
 	display: flex;
 	flex-direction: column;
-	gap: 3px; /* Reduced gap */
+	gap: 3px;
 }
 
 .metric-item {
 	display: flex;
 	align-items: center;
-	gap: 3px; /* Reduced gap */
+	gap: 3px;
 }
 
 .metric-icon {
 	color: #1e88e5;
-	font-size: 14px; /* Slightly smaller icon */
+	font-size: 14px;
 	font-family: "Material Symbols Outlined", sans-serif;
 }
 
 .metric-text {
 	color: rgba(0, 0, 0, 0.6);
-	font-size: 13px; /* Slightly smaller text */
+	font-size: 13px;
 }
 
 .timestamp {
-	margin-top: 2px; /* Reduced margin */
+	margin-top: 2px;
 	color: rgba(0, 0, 0, 0.38);
-	font-size: 11px; /* Slightly smaller font */
+	font-size: 11px;
 }
 </style>

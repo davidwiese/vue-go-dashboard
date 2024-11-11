@@ -32,7 +32,7 @@
 }
 
 .v-app-bar {
-	background-color: #1e88e5; /* Basic primary color */
+	background-color: #1e88e5;
 	color: #ffffff;
 }
 
