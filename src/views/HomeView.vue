@@ -34,7 +34,7 @@ const getBaseUrl = () => {
 
 const getWebSocketUrl = () => {
 	const baseUrl = import.meta.env.PROD
-		? "gobackend-env.eba-cpaytf92.us-west-1.elasticbeanstalk.com"
+		? "gobackend-env.eba-cpaytf92.us-west-1.elasticbeanstalk.com:5000"
 		: "localhost:5000";
 	return `ws://${baseUrl}/ws`;
 };
