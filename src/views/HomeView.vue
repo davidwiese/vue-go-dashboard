@@ -54,10 +54,8 @@ const selectedVehicleId = ref<string | undefined>(undefined);
 const loadPreferences = async () => {
 	try {
 		const clientId = getClientId();
-		console.log("Loading preferences for client:", clientId);
 
 		const prefs = await getPreferences(clientId);
-		console.log("Raw preference data from server:", prefs);
 
 		// Clear existing preferences
 		Object.keys(preferences).forEach((key) => delete preferences[key]);
@@ -80,8 +78,6 @@ const loadPreferences = async () => {
 					pref.display_name || preferences[pref.device_id]?.displayName,
 			};
 		});
-
-		console.log("Updated preferences:", preferences);
 	} catch (error) {
 		console.error("Error loading preferences:", error);
 	}
@@ -89,7 +85,6 @@ const loadPreferences = async () => {
 
 // Handle preference updates
 const handlePreferencesUpdated = async () => {
-	console.log("Preferences update event received");
 	await loadPreferences();
 };
 
