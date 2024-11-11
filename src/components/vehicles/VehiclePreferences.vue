@@ -512,14 +512,14 @@ const onDrop = async (targetDeviceId: string) => {
 .button-container {
 	display: flex;
 	justify-content: center;
-	gap: 16px; /* Increased space between buttons */
+	gap: 8px;
 }
 
 .action-btn {
 	text-transform: none;
 	font-weight: 500;
 	letter-spacing: 0.5px;
-	min-width: 120px; /* Ensure consistent button widths */
+	min-width: 100px;
 }
 
 .preferences-content {
