@@ -114,6 +114,11 @@ const generateReport = async () => {
 						duration_format: "standard",
 						use_pdf_landscape: true,
 						use_xlsx_separated_format: false,
+						min_stop_duration: {
+							value: 5,
+							unit: "m",
+							display: "5m",
+						},
 					},
 				},
 			},
