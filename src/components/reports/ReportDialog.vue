@@ -3,7 +3,7 @@ It manages timeframe selection, API interaction, and download handling -->
 
 <script setup lang="ts">
 import { ref, computed } from "vue";
-import { format } from "date-fns";
+import { formatISO } from "date-fns";
 import LoadingSpinner from "../common/LoadingSpinner.vue";
 import axios from "axios";
 
@@ -87,6 +87,11 @@ const generateReport = async () => {
 		);
 		if (!timeframe) return;
 
+		const fromTime = formatISO(timeframe.from);
+		const toTime = formatISO(timeframe.to);
+
+		console.log("Report timeframe:", { fromTime, toTime });
+
 		const response = await fetch("/api/report/generate", {
 			method: "POST",
 			headers: {
@@ -97,8 +102,8 @@ const generateReport = async () => {
 					user_report_name: `${props.vehicle.display_name} Activity Report`,
 					report_type: "drives_and_stops",
 					device_id_list: [props.vehicle.device_id],
-					datetime_from: format(timeframe.from, "yyyy-MM-dd'T'HH:mm:ss'Z'"),
-					datetime_to: format(timeframe.to, "yyyy-MM-dd'T'HH:mm:ss'Z'"),
+					datetime_from: fromTime,
+					datetime_to: toTime,
 					report_output_field_list: [
 						"device_name",
 						"drive_start_time",
@@ -119,6 +124,7 @@ const generateReport = async () => {
 					},
 				},
 			}),
+			responseType: "blob",
 		});
 
 		if (!response.ok) {
