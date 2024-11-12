@@ -3,7 +3,7 @@ It manages timeframe selection, API interaction, and download handling -->
 
 <script setup lang="ts">
 import { ref, computed } from "vue";
-import { formatISO } from "date-fns";
+import { format } from "date-fns";
 import LoadingSpinner from "../common/LoadingSpinner.vue";
 import axios from "axios";
 
@@ -87,24 +87,16 @@ const generateReport = async () => {
 		);
 		if (!timeframe) return;
 
-		// Convert local dates to UTC with 'Z' suffix
-		const fromUTC = new Date(timeframe.from).toISOString(); // This gives format like "2024-11-10T22:21:45.000Z"
-		const toUTC = new Date(timeframe.to).toISOString();
-
-		console.log("Report timeframe:", { fromUTC, toUTC }); // Debug log
-
-		const response = await fetch("/api/report/generate", {
+		const response = await axios({
 			method: "POST",
-			headers: {
-				"Content-Type": "application/json",
-			},
-			body: JSON.stringify({
+			url: `${API_BASE_URL}/report/generate`,
+			data: {
 				report_spec: {
 					user_report_name: `${props.vehicle.display_name} Activity Report`,
 					report_type: "drives_and_stops",
 					device_id_list: [props.vehicle.device_id],
-					datetime_from: fromUTC,
-					datetime_to: toUTC,
+					datetime_from: format(timeframe.from, "yyyy-MM-dd'T'HH:mm:ss'Z'"),
+					datetime_to: format(timeframe.to, "yyyy-MM-dd'T'HH:mm:ss'Z'"),
 					report_output_field_list: [
 						"device_name",
 						"drive_start_time",
@@ -124,16 +116,12 @@ const generateReport = async () => {
 						use_xlsx_separated_format: false,
 					},
 				},
-			}),
+			},
 			responseType: "blob",
 		});
 
-		if (!response.ok) {
-			const errorText = await response.text();
-			throw new Error(errorText || "Failed to generate report");
-		}
-
-		const blob = await response.blob();
+		// Create and trigger download
+		const blob = new Blob([response.data], { type: "application/pdf" });
 		const url = window.URL.createObjectURL(blob);
 		const a = document.createElement("a");
 		a.href = url;
@@ -147,7 +135,13 @@ const generateReport = async () => {
 	} catch (error) {
 		console.error("Error generating report:", error);
 		errorMessage.value =
-			error instanceof Error ? error.message : "An unexpected error occurred";
+			axios.isAxiosError(error) && error.response?.data instanceof Blob
+				? await new Promise((resolve) => {
+						const reader = new FileReader();
+						reader.onload = () => resolve(reader.result as string);
+						reader.readAsText(error.response.data);
+				  })
+				: "An unexpected error occurred";
 		showError.value = true;
 	} finally {
 		isGeneratingReport.value = false;
