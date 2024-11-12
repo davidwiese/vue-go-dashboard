@@ -98,15 +98,18 @@ const generateReport = async () => {
 					datetime_from: format(timeframe.from, "yyyy-MM-dd'T'HH:mm:ss'Z'"),
 					datetime_to: format(timeframe.to, "yyyy-MM-dd'T'HH:mm:ss'Z'"),
 					report_output_field_list: [
-						"device_name",
-						"drive_start_time",
-						"drive_end_time",
-						"drive_duration",
-						"drive_distance",
-						"max_speed",
-						"avg_speed",
-						"start_location",
-						"end_location",
+						"status",
+						"start_time",
+						"end_time",
+						"duration",
+						"length",
+						"speed_top",
+						"speed_avg",
+						"lat_lng",
+						"address",
+						"zone_name",
+						"engine_idle",
+						"odometer",
 					],
 					report_options: {
 						date_time_format: "standard",
@@ -126,7 +129,7 @@ const generateReport = async () => {
 		});
 
 		// Create and trigger download
-		const blob = new Blob([response.data], { type: "application/pdf" });
+		const blob = await response.blob();
 		const url = window.URL.createObjectURL(blob);
 		const a = document.createElement("a");
 		a.href = url;
