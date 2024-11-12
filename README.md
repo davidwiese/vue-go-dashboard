@@ -6,7 +6,7 @@
 [trackifyfleet.pro](https://trackifyfleet.pro)
 
 ## Project Overview
-Trackify Fleet is a real-time vehicle tracking application built with Vue.js and integrated with the OneStep GPS API. The dashboard provides real-time vehicle tracking, customizable preferences, and detailed reporting capabilities.
+**Trackify Fleet** is a real-time vehicle tracking application built with Vue.js and integrated with the OneStep GPS API. The dashboard provides real-time vehicle tracking, customizable preferences, and detailed reporting capabilities.
 
 ## Technologies Used
 - **Frontend Framework:**
