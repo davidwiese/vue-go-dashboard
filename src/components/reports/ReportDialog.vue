@@ -95,31 +95,49 @@ const generateReport = async () => {
 			data: {
 				report_spec: {
 					user_report_name: `${props.vehicle.display_name} Activity Report`,
-					report_type: "drives_and_stops",
+					report_type: "general_info", // Changed from drives_and_stops
 					device_id_list: [props.vehicle.device_id],
 					datetime_from: format(timeframe.from, "yyyy-MM-dd'T'HH:mm:ss'Z'"),
 					datetime_to: format(timeframe.to, "yyyy-MM-dd'T'HH:mm:ss'Z'"),
 					report_output_field_list: [
+						"device_id",
 						"device_name",
-						"drive_start_time",
-						"drive_end_time",
-						"drive_duration",
-						"drive_distance",
-						"max_speed",
-						"avg_speed",
-						"start_location",
-						"end_location",
+						"groups",
+						"factory_id",
+						"route_length",
+						"move_duration",
+						"stop_duration",
+						"stop_count",
+						"speed_top",
+						"speed_avg",
+						"speed_count",
+						"engine_work",
+						"engine_idle",
+						"engine_time",
+						"current_engine_hours",
+						"general_info_odometer_end",
 					],
 					report_options: {
-						date_time_format: "standard",
 						display_decimal_places: 1,
 						duration_format: "standard",
+						min_stop_duration: {
+							value: 5,
+							unit: "m",
+							display: "5m",
+						},
 						use_pdf_landscape: true,
-						use_xlsx_separated_format: false,
+					},
+					report_options_general_info: {
+						minimum_speeding_threshold: {
+							value: 50,
+							unit: "mph",
+							display: "50 mph",
+						},
+						use_nonmerged_layout: false,
 					},
 				},
 			},
-			responseType: "blob", // For PDF download
+			responseType: "blob",
 		});
 
 		// Handle successful response with file download
