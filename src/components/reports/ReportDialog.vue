@@ -129,7 +129,7 @@ const generateReport = async () => {
 		});
 
 		// Create and trigger download
-		const blob = await response.blob();
+		const blob = new Blob([response.data], { type: "application/pdf" });
 		const url = window.URL.createObjectURL(blob);
 		const a = document.createElement("a");
 		a.href = url;
