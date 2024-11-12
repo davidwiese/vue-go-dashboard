@@ -82,66 +82,51 @@ const generateReport = async () => {
 		errorMessage.value = "";
 		showError.value = false;
 
-		// Get selected timeframe
 		const timeframe = timeframes.value.find(
 			(t) => t.value === selectedTimeframe.value
 		);
 		if (!timeframe) return;
 
-		// Make API request with report config
-		const response = await axios({
+		const response = await fetch("/api/report/generate", {
 			method: "POST",
-			url: `${API_BASE_URL}/report/generate`,
-			data: {
+			headers: {
+				"Content-Type": "application/json",
+			},
+			body: JSON.stringify({
 				report_spec: {
 					user_report_name: `${props.vehicle.display_name} Activity Report`,
-					report_type: "general_info", // Changed from drives_and_stops
+					report_type: "drives_and_stops",
 					device_id_list: [props.vehicle.device_id],
 					datetime_from: format(timeframe.from, "yyyy-MM-dd'T'HH:mm:ss'Z'"),
 					datetime_to: format(timeframe.to, "yyyy-MM-dd'T'HH:mm:ss'Z'"),
 					report_output_field_list: [
-						"device_id",
 						"device_name",
-						"groups",
-						"factory_id",
-						"route_length",
-						"move_duration",
-						"stop_duration",
-						"stop_count",
-						"speed_top",
-						"speed_avg",
-						"speed_count",
-						"engine_work",
-						"engine_idle",
-						"engine_time",
-						"current_engine_hours",
-						"general_info_odometer_end",
+						"drive_start_time",
+						"drive_end_time",
+						"drive_duration",
+						"drive_distance",
+						"max_speed",
+						"avg_speed",
+						"start_location",
+						"end_location",
 					],
 					report_options: {
+						date_time_format: "standard",
 						display_decimal_places: 1,
 						duration_format: "standard",
-						min_stop_duration: {
-							value: 5,
-							unit: "m",
-							display: "5m",
-						},
 						use_pdf_landscape: true,
-					},
-					report_options_general_info: {
-						minimum_speeding_threshold: {
-							value: 50,
-							unit: "mph",
-							display: "50 mph",
-						},
-						use_nonmerged_layout: false,
+						use_xlsx_separated_format: false,
 					},
 				},
-			},
-			responseType: "blob",
+			}),
 		});
 
-		// Handle successful response with file download
-		const blob = new Blob([response.data], { type: "application/pdf" });
+		if (!response.ok) {
+			const errorText = await response.text();
+			throw new Error(errorText || "Failed to generate report");
+		}
+
+		const blob = await response.blob();
 		const url = window.URL.createObjectURL(blob);
 		const a = document.createElement("a");
 		a.href = url;
@@ -154,51 +139,9 @@ const generateReport = async () => {
 		closeDialog();
 	} catch (error) {
 		console.error("Error generating report:", error);
-		let errorMsg = "An unexpected error occurred";
-
-		// Better error handling for axios errors
-		if (axios.isAxiosError(error)) {
-			if (error.response) {
-				// The request was made and the server responded with a status code
-				// that falls out of the range of 2xx
-				const reader = new FileReader();
-				reader.onload = () => {
-					try {
-						const errorData = JSON.parse(reader.result as string);
-						errorMessage.value =
-							errorData.error || errorData.message || errorMsg;
-					} catch {
-						errorMessage.value = error.response?.statusText || errorMsg;
-					}
-					showError.value = true;
-				};
-				reader.onerror = () => {
-					errorMessage.value = errorMsg;
-					showError.value = true;
-				};
-				// Read the error response as text
-				if (error.response.data instanceof Blob) {
-					reader.readAsText(error.response.data);
-				} else {
-					errorMessage.value =
-						error.response.data?.error ||
-						error.response.data?.message ||
-						errorMsg;
-					showError.value = true;
-				}
-			} else if (error.request) {
-				// The request was made but no response was received
-				errorMessage.value = "No response received from server";
-				showError.value = true;
-			} else {
-				// Something happened in setting up the request
-				errorMessage.value = error.message || errorMsg;
-				showError.value = true;
-			}
-		} else {
-			errorMessage.value = errorMsg;
-			showError.value = true;
-		}
+		errorMessage.value =
+			error instanceof Error ? error.message : "An unexpected error occurred";
+		showError.value = true;
 	} finally {
 		isGeneratingReport.value = false;
 	}
