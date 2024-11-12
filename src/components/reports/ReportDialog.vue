@@ -87,10 +87,11 @@ const generateReport = async () => {
 		);
 		if (!timeframe) return;
 
-		const fromTime = formatISO(timeframe.from);
-		const toTime = formatISO(timeframe.to);
+		// Convert local dates to UTC with 'Z' suffix
+		const fromUTC = new Date(timeframe.from).toISOString(); // This gives format like "2024-11-10T22:21:45.000Z"
+		const toUTC = new Date(timeframe.to).toISOString();
 
-		console.log("Report timeframe:", { fromTime, toTime });
+		console.log("Report timeframe:", { fromUTC, toUTC }); // Debug log
 
 		const response = await fetch("/api/report/generate", {
 			method: "POST",
