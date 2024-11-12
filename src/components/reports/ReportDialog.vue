@@ -105,11 +105,6 @@ const generateReport = async () => {
 						"length",
 						"speed_top",
 						"speed_avg",
-						"lat_lng",
-						"address",
-						"zone_name",
-						"engine_idle",
-						"odometer",
 					],
 					report_options: {
 						date_time_format: "standard",
