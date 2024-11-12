@@ -103,8 +103,8 @@ const generateReport = async () => {
 					user_report_name: `${props.vehicle.display_name} Activity Report`,
 					report_type: "drives_and_stops",
 					device_id_list: [props.vehicle.device_id],
-					datetime_from: fromTime,
-					datetime_to: toTime,
+					datetime_from: fromUTC,
+					datetime_to: toUTC,
 					report_output_field_list: [
 						"device_name",
 						"drive_start_time",
