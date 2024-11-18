@@ -5,6 +5,7 @@
 		"strict": true,
 		"jsx": "preserve",
 		"moduleResolution": "node",
+		"types": ["vite/client"],
 		"paths": {
 			"@/*": ["./src/*"]
 		}
