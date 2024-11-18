@@ -71,7 +71,8 @@ const formatLocation = () => {
 					<v-icon
 						:color="
 							vehicle.online
-								? vehicle.latest_device_point?.speed > 0
+								? vehicle.latest_device_point &&
+								  vehicle.latest_device_point.speed > 0
 									? 'success'
 									: 'warning'
 								: 'error'

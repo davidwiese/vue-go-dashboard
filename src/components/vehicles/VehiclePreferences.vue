@@ -276,11 +276,15 @@ const sortAlphabetically = async () => {
 const updateDisplayName = async (deviceId: string, newName: string) => {
 	const pref = localPreferences[deviceId];
 	if (pref) {
-		const originalName = pref.displayName;
+		const originalName = pref.displayName; // Store for rollback
 		try {
+			// Optimistic update
 			pref.displayName = newName;
+
+			// Attempt to save to backend
 			await savePreference(deviceId);
 		} catch (err) {
+			// Rollback on error
 			pref.displayName = originalName;
 		}
 	}
