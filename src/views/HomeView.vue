@@ -99,7 +99,7 @@ const initWebSocket = () => {
 	socket = new WebSocket(`${WS_URL}?client_id=${clientId}`);
 
 	socket.onmessage = (event) => {
-		// Update reactive state - similar to React's setState
+		// Update reactive state with new vehicle data
 		const vehicleUpdates = JSON.parse(event.data) as Vehicle[];
 		vehicles.value = vehicleUpdates;
 	};
@@ -109,6 +109,7 @@ const initWebSocket = () => {
 		console.error("WebSocket error:", error);
 	};
 
+	// Handle disconnections with reconnect logic
 	socket.onclose = () => {
 		console.log("WebSocket connection closed");
 		// Attempt to reconnect after delay
@@ -117,7 +118,7 @@ const initWebSocket = () => {
 				console.log("Attempting to reconnect WebSocket...");
 				initWebSocket();
 			}
-		}, 5000);
+		}, 5000); // Retry every 5 seconds
 	};
 
 	socket.onopen = () => {
@@ -159,8 +160,8 @@ const scrollToMap = () => {
 
 // Lifecycle hooks similar to React's useEffect
 onMounted(async () => {
-	await fetchVehicles();
-	initWebSocket();
+	await fetchVehicles(); // Initial data load
+	initWebSocket(); // Start real-time updates
 	await loadPreferences();
 });
 
