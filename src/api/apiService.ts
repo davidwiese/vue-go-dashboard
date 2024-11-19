@@ -9,11 +9,6 @@ const API_BASE_URL = import.meta.env.PROD
 	: "http://localhost:5000";
 
 // Interfaces
-interface APIError {
-	message: string;
-	status?: number;
-}
-
 interface PreferencePayload {
 	device_id: string;
 	client_id: string;

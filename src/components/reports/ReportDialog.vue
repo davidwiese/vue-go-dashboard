@@ -4,7 +4,6 @@ It manages timeframe selection, API interaction, and download handling -->
 <script setup lang="ts">
 import { ref, computed } from "vue";
 import { format } from "date-fns";
-import LoadingSpinner from "../common/LoadingSpinner.vue";
 import axios from "axios";
 
 // Interfaces
@@ -87,6 +86,7 @@ const generateReport = async () => {
 		);
 		if (!timeframe) return;
 
+		// Make POST request with blob response type for PDF
 		const response = await axios({
 			method: "POST",
 			url: `${API_BASE_URL}/report/generate`,
@@ -141,13 +141,14 @@ const generateReport = async () => {
 
 		closeDialog();
 	} catch (error) {
+		// Handle errors, including blob error responses
 		console.error("Error generating report:", error);
 		errorMessage.value =
 			axios.isAxiosError(error) && error.response?.data instanceof Blob
 				? await new Promise((resolve) => {
 						const reader = new FileReader();
 						reader.onload = () => resolve(reader.result as string);
-						reader.readAsText(error.response.data);
+						reader.readAsText(error.response?.data);
 				  })
 				: "An unexpected error occurred";
 		showError.value = true;
