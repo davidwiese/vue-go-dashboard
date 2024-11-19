@@ -294,18 +294,19 @@ const updateDisplayName = async (deviceId: string, newName: string) => {
 // Handle drag and drop for sorting
 const draggedItem = ref<string | null>(null);
 
+// Drag event handlers
 const onDragStart = (deviceId: string) => {
-	draggedItem.value = deviceId;
+	draggedItem.value = deviceId; // Store dragged item's ID
 };
 
 const onDragOver = (e: DragEvent) => {
-	e.preventDefault();
+	e.preventDefault(); // Prevent default drag behavior, necessary for drop
 };
 
 const onDrop = async (targetDeviceId: string) => {
 	if (!draggedItem.value || draggedItem.value === targetDeviceId) return;
 
-	const vehicles = sortedVehicles.value; // Use sorted vehicles instead of props.vehicles
+	const vehicles = sortedVehicles.value;
 	const draggedIdx = vehicles.findIndex(
 		(v) => v.device_id === draggedItem.value
 	);
@@ -319,11 +320,12 @@ const onDrop = async (targetDeviceId: string) => {
 		const [draggedVehicle] = reorderedVehicles.splice(draggedIdx, 1);
 		reorderedVehicles.splice(targetIdx, 0, draggedVehicle);
 
-		// Update sort orders
+		// Store original order for rollback
 		reorderedVehicles.forEach((vehicle, idx) => {
 			const pref = localPreferences[vehicle.device_id];
 			if (pref) {
 				originalOrder.set(vehicle.device_id, pref.sortOrder);
+				// Optimistically update sort order
 				pref.sortOrder = idx;
 			}
 		});
@@ -339,14 +341,14 @@ const onDrop = async (targetDeviceId: string) => {
 			sort_order: localPreferences[vehicle.device_id]?.sortOrder || 0,
 		}));
 
-		// Apply changes to global preferences
+		// Save to backend
 		await savePreferencesBatch(updates);
 		emit("preferences-updated");
 	} catch (err) {
 		console.error("Error updating sort order:", err);
 		error.value = "Failed to update sort order";
 
-		// Revert changes
+		// Rollback on error
 		originalOrder.forEach((order, deviceId) => {
 			const pref = localPreferences[deviceId];
 			if (pref) {
@@ -354,7 +356,7 @@ const onDrop = async (targetDeviceId: string) => {
 			}
 		});
 	} finally {
-		draggedItem.value = null;
+		draggedItem.value = null; // Clear dragged item
 	}
 };
 </script>
