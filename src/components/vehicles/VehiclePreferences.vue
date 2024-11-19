@@ -159,11 +159,12 @@ const toggleAllVisibility = async (show: boolean) => {
 			const pref = localPreferences[vehicle.device_id];
 			if (pref) {
 				originalStates.set(vehicle.device_id, pref.isHidden);
+				// Optimistically update visibility
 				pref.isHidden = !show;
 			}
 		});
 
-		// Prepare batch update
+		// Prepare batch update payload
 		const updates: PreferencePayload[] = props.vehicles.map((vehicle) => {
 			const pref = localPreferences[vehicle.device_id];
 			return {
