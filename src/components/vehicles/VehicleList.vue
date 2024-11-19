@@ -45,13 +45,16 @@ const selectedVehicle = ref<Vehicle | null>(null);
 // - Removes hidden vehicles
 // - Sorts by preference sortOrder
 const displayedVehicles = computed(() => {
-	return [...props.vehicles]
-		.filter((vehicle) => !props.preferences?.[vehicle.device_id]?.isHidden)
-		.sort((a, b) => {
-			const aOrder = props.preferences?.[a.device_id]?.sortOrder || 0;
-			const bOrder = props.preferences?.[b.device_id]?.sortOrder || 0;
-			return aOrder - bOrder;
-		});
+	return (
+		[...props.vehicles]
+			// Apply filters and sorting
+			.filter((vehicle) => !props.preferences?.[vehicle.device_id]?.isHidden)
+			.sort((a, b) => {
+				const aOrder = props.preferences?.[a.device_id]?.sortOrder || 0;
+				const bOrder = props.preferences?.[b.device_id]?.sortOrder || 0;
+				return aOrder - bOrder;
+			})
+	);
 });
 
 // onlineCount tracks number of visible online vehicles

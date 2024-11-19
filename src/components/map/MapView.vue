@@ -24,11 +24,6 @@ interface Preference {
 	displayName: string;
 }
 
-interface Props {
-	vehicles: Vehicle[];
-	preferences: Record<string, Preference>;
-}
-
 const props = defineProps<{
 	vehicles: Vehicle[];
 	preferences: Record<string, Preference>;
@@ -86,7 +81,7 @@ watch(
 );
 
 // Helper function to get marker icon
-const getMarkerIcon = (vehicle) => {
+const getMarkerIcon = (vehicle: any) => {
 	if (!google.value) return null;
 
 	const backgroundColor = vehicle.online
@@ -207,7 +202,7 @@ const createInfoWindowContent = (vehicle: Vehicle) => `
 `;
 
 // Helper function to create/update map markers for vehicles
-const createOrUpdateMarker = (vehicle) => {
+const createOrUpdateMarker = (vehicle: any) => {
 	if (!google.value || !map.value) return;
 
 	try {
@@ -269,7 +264,7 @@ const createOrUpdateMarker = (vehicle) => {
 };
 
 // Remove marker and clean up resources
-const removeMarker = (deviceId) => {
+const removeMarker = (deviceId: any) => {
 	const marker = markers.value[deviceId];
 	if (marker) {
 		try {
@@ -312,7 +307,7 @@ const updateMarkers = () => {
 	}
 };
 
-// Consolidated watcher for vehicles and preferences
+// Consolidated watcher for vehicles and preference updates
 watch([() => props.vehicles, () => props.preferences], updateMarkers, {
 	deep: true,
 });
